@@ -2,8 +2,8 @@
 Contributors: dolby_uk
 Donate link: http://www.dansmart.co.uk/
 Tags: iphone, mobile, theme switcher, mobile theme, 
-Requires at least: 2.8
-Tested up to: 2.8.6
+Requires at least: 2.9
+Tested up to: 2.9
 Stable tag: trunk
 
 With the Mobile Smart plugin you have a selection of tools to enable your theme to work better with 
@@ -123,16 +123,6 @@ Try the Wordpress Mobile Pack for a good example of a theme that is compatible w
 - Domain switching of themes
 - Cookie-based detection, to allow users to go to a desktop theme
 - PHP and Javascript helper functions
-
-== Screenshots ==
-
-1. This screen shot description corresponds to screenshot-1.(png|jpg|jpeg|gif). Note that the 
-
-screenshot is taken from
-the directory of the stable readme.txt, so in this case, `/tags/4.3/screenshot-1.png` (or jpg, jpeg, 
-
-gif)
-2. This is the second screen shot
 
 == Changelog ==
 
