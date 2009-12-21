@@ -1,0 +1,145 @@
+=== Plugin Name ===
+Contributors: dolby_uk
+Donate link: http://www.dansmart.co.uk/
+Tags: iphone, mobile, theme switcher, mobile theme, 
+Requires at least: 2.8
+Tested up to: 2.8.6
+Stable tag: trunk
+
+With the Mobile Smart plugin you have a selection of tools to enable your theme to work better with 
+
+mobile devices.
+
+== Description ==
+
+Mobile Smart currently contains the following functionality:
+
+ *Switch your theme to a mobile-ready theme if a mobile device is detected
+ *Template functions to help determine which tier of mobile device (touch/smartphone/other) is viewing your site, to allow conditional content inclusion.
+ *Adds device and tier specific CSS selectors to the body_class, to allow conditional CSS (e.g. so 
+
+in the same way you have ".single" that you can target ".iphone" or ".mobile-tier-touch".)
+
+See the Frequently Asked Questions for guidance on how to use the plugin.
+
+Note: More functionality will be coming over the coming weeks, but this is the first version to get 
+
+the ball rolling as some of you wanted to use this immediately.
+
+== Installation ==
+
+This section describes how to install the plugin and get it working.
+
+1. Upload the `mobile-smart` directory to the `/wp-content/plugins/` directory
+1. Activate the plugin through the 'Plugins' menu in WordPress
+1. Go to Settings->Mobile Smart and choose your theme to display when a mobile device encounters 
+
+your page.
+
+See the Frequently Asked Questions for guidance on how to use the plugin.
+
+== Frequently Asked Questions ==
+
+= Does this work with other mobile plugins =
+
+It would be advisable not to use other mobile theme switching functionality with this unless theme 
+
+switching is turned off (go to Settings->Mobile Smart to disable).
+
+This has been tested with the Wordpress Mobile Pack transcoder and is noted to be compatible, though 
+
+the list of mobile devices are different between the two.
+
+= Do you do domain switching =
+
+Not currently, though that is on the roadmap.
+
+= How do I enable unique handset body classes =
+
+To enable the CSS body classes, ensure that in your mobile theme you have the body_class() function 
+
+included:
+
+ `<?php body_class(); ?>`
+
+
+
+= How do I change stylesheets dependent on device tier =
+
+How do I use the body classes?
+
+If you have a style that you only want a specific tier of device (e.g. touch handsets like the 
+
+iPhone) to use, then use the body class CSS selector in your CSS file as follows:
+
+(Example: 
+
+/* for all links */
+a {
+  color: black;
+}
+
+/* increase padding on anchors on touch handsets to allow for big fingers
+.mobile-tier-touch li a {
+  padding: 20px;
+}
+
+
+= How do I change stylesheets dependent on device tier =
+
+You would do this if you prefer to split out each device tier CSS into separate files. Be aware that 
+
+this creates an extra function call though.
+
+Use the following PHP code:
+
+`<?php
+/* add additional stylesheet for certain mobile types */
+global $mobile_smart;
+// add stylesheets dependent on header
+if ($mobile_smart->isTierTouch() == MOBILE_DEVICE_TIER_TOUCH)
+{
+  wp_enqueue_style('mobile-touch', get_bloginfo('stylesheet_directory')."/css/touch.css");
+}
+else if ($mobile_smart->isTierSmartphone())
+{
+  wp_enqueue_style('mobile-smartphone', get_bloginfo('stylesheet_directory')."/css/smartphone.css");
+}
+?>`
+
+= Can you add xxxx-device? =
+
+Please email me with details of the device that is not yet supported by Mobile Smart, and I will add 
+
+it in, and endeavour to release an updated version within the week (if timescales allow).
+
+= Where can I get a mobile theme from? =
+
+Try the Wordpress Mobile Pack for a good example of a theme that is compatible with XHTML-MP.
+
+= What's on the roadmap? =
+
+- Admin interface to allow adding of user agents
+- Domain switching of themes
+- Cookie-based detection, to allow users to go to a desktop theme
+- PHP and Javascript helper functions
+
+== Screenshots ==
+
+1. This screen shot description corresponds to screenshot-1.(png|jpg|jpeg|gif). Note that the 
+
+screenshot is taken from
+the directory of the stable readme.txt, so in this case, `/tags/4.3/screenshot-1.png` (or jpg, jpeg, 
+
+gif)
+2. This is the second screen shot
+
+== Changelog ==
+
+= 0.1 =
+Initial release.
+
+== Upgrade Notice ==
+
+= 0.1 =
+Initial release.
