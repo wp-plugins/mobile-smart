@@ -2,7 +2,7 @@
 Contributors: dolby_uk
 Donate link: http://www.dansmart.co.uk/
 Tags: iphone, mobile, theme switcher, mobile theme, 
-Requires at least: 2.9
+Requires at least: 2.7
 Tested up to: 2.9
 Stable tag: trunk
 
