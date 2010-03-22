@@ -38,6 +38,8 @@ Description: Mobile Smart contains helper tools for mobile devices, including al
 // -------------------------------------------------------------------------
 // Defines
 // -------------------------------------------------------------------------
+define('MOBILESMART_DOMAIN', 'mobilesmart');
+
 define ('MOBILE_DEVICE_OPERA_MINI', 'operamini');
 define ('MOBILE_DEVICE_IPHONE', 'iphone');
 define ('MOBILE_DEVICE_IPOD', 'ipod');
@@ -52,6 +54,18 @@ define ('MOBILE_DEVICE_OTHER', 'other_mobile');
 define ('MOBILE_DEVICE_TIER_TOUCH', 'mobile-tier-touch');
 define ('MOBILE_DEVICE_TIER_SMARTPHONE', 'mobile-tier-smartphone');
 define ('MOBILE_DEVICE_TIER_OTHER', 'mobile-tier-other-mobile');
+
+define ('MOBILESMART_SWITCHER_GET_PARAM', 'mobile_switch');
+define ('MOBILESMART_SWITCHER_MOBILE_STR', 'mobile');
+define ('MOBILESMART_SWITCHER_DESKTOP_STR', 'desktop');
+define ('MOBILESMART_SWITCHER_COOKIE', 'mobile-smart-switcher');
+define ('MOBILESMART_SWITCHER_COOKIE_EXPIRE', 3600); // 3600
+
+// -------------------------------------------------------------------------
+// Includes
+// -------------------------------------------------------------------------
+require_once('mobile-smart-switcher-widget.php');
+
 // -------------------------------------------------------------------------
 // Plugin Class
 // -------------------------------------------------------------------------
@@ -68,6 +82,8 @@ if (!class_exists("MobileSmart"))
 
     var $device = ''; // current device
     var $deviceTier = ''; // current device tier
+
+    var $switcher_cookie = null;
 
     // Initialise UA strings
     var $device_ua_array = array(
@@ -146,6 +162,14 @@ if (!class_exists("MobileSmart"))
     // -------------------------------------------------------------------------
     function MobileSmart()
     {
+      // translations
+      load_plugin_textdomain(MOBILESMART_DOMAIN,'/wp-content/plugins/mobile-smart/languages');
+      
+      if (isset($_COOKIE[MOBILESMART_SWITCHER_COOKIE]))
+      {
+        $this->switcher_cookie = $_COOKIE[MOBILESMART_SWITCHER_COOKIE];
+        //echo "Construct cookie: $this->switcher_cookie<br/><br/>";
+      }
     }
 
     // -------------------------------------------------------------------------
@@ -202,31 +226,66 @@ if (!class_exists("MobileSmart"))
 
       if (isset($_POST['submit']))
       {
+        $status_messages = array();
         // Enable / Disable theme switching
         if (isset($_POST['enable_theme_switching']))
         {
+          // enable theme switching
           if ($options['enable_theme_switching'] != true)
           {
             $options['enable_theme_switching'] = true;
 
-            ?>
-            <div class="updated">
-              <p><strong><?php _e('Theme switching enabled.', 'MobileSmart'); ?></strong></p>
-            </div>
-            <?php
+            $status_messages[] = array('updated', __('Theme switching enabled.', MOBILESMART_DOMAIN));
           }
         }
         else
         {
+          // disable theme switching
           if ($options['enable_theme_switching'] != false)
           {
             $options['enable_theme_switching'] = false;
 
-            ?>
-            <div class="updated">
-              <p><strong><?php _e('Theme switching disabled.', 'MobileSmart'); ?></strong></p>
-            </div>
-            <?php
+            $status_messages[] = array('updated', __('Theme switching disabled.', MOBILESMART_DOMAIN));
+          }
+        }
+
+        // Enable / Disable manual switching
+        if (isset($_POST['enable_manual_switch']))
+        {
+          if ($options['enable_manual_switch'] != true)
+          {
+            $options['enable_manual_switch'] = true;
+
+            $status_messages[] = array('updated', __('Manual theme switching enabled.', MOBILESMART_DOMAIN));
+          }
+        }
+        else
+        {
+          if ($options['enable_manual_switch'] != false)
+          {
+            $options['enable_manual_switch'] = false;
+
+            $status_messages[] = array('updated', __('Manual theme switching disabled.', MOBILESMART_DOMAIN));
+          }
+        }
+
+        // Enable / Disable desktop manual switching
+        if (isset($_POST['allow_desktop_switcher']))
+        {
+          if ($options['allow_desktop_switcher'] != true)
+          {
+            $options['allow_desktop_switcher'] = true;
+
+            $status_messages[] = array('updated', __('Manual theme switching on desktop enabled.', MOBILESMART_DOMAIN));
+          }
+        }
+        else
+        {
+          if ($options['allow_desktop_switcher'] != false)
+          {
+            $options['allow_desktop_switcher'] = false;
+
+            $status_messages[] = array('updated', __('Manual theme switching on desktop disabled.', MOBILESMART_DOMAIN));
           }
         }
 
@@ -235,10 +294,18 @@ if (!class_exists("MobileSmart"))
         {
           $options['mobile_theme'] = $_POST['theme'];
 
+          $status_messages[] = array('updated', __e('Mobile theme updated to: ', MOBILESMART_DOMAIN) . $_POST['theme']);
+        }
+
+        // output status messages
+        if (!empty($status_messages))
+        {
           ?>
-          <div class="updated">
-            <p><strong><?php _e('Mobile theme updated to: ', 'MobileSmart'); echo $_POST['theme']; ?></strong></p>
-          </div>
+            <div class="updated">
+              <?php foreach ($status_messages as $message) : ?>
+                <p><strong><?php echo $message[1] ?></strong></p>
+              <?php endforeach; ?>
+            </div>
           <?php
         }
 
@@ -251,7 +318,7 @@ if (!class_exists("MobileSmart"))
       <div class="wrap">
         <form method="post" action="<?php echo $_SERVER["REQUEST_URI"]; ?>">
           <h2>Mobile Smart</h2>
-          <h3>Mobile theme</h3>
+          <h3>Mobile Theme</h3>
           <p>Enable switching via user agent detection:</p>
           <label for="enable_theme_switching">Enable <input type="checkbox" name="enable_theme_switching" id="enable_theme_switching" <?php if ($options['enable_theme_switching']) { echo "checked"; } ?>/>
           </label>
@@ -268,10 +335,33 @@ if (!class_exists("MobileSmart"))
                   }
                 ?>
               </select></label>
+
+          <hr/>
+          <h3>Manual Switching</h3>
+          <h4>Enable Manual Switcher</h4>
+          <p>You can add a link to your pages which will allow the user to manually select the version
+           (desktop or mobile) that they want. Once you enable Manual Switching, you can use either the
+           footer link or the Mobile Smart Manual Switcher widget.</p>
+          <label for="enable_manual_switch">Enable Manual Switcher <input type="checkbox" name="enable_manual_switch" id="enable_manual_switch" <?php if ($options['enable_manual_switch']) { echo "checked"; } ?>/>
+          </label><br/>
+
+          <h4>Enable a Manual Switcher link in the footer</h4>
+          <p><em>Manual switching (above) must be enabled for this to work properly.</em></p>
+          <label for="enable_manual_switch_in_footer">Enable Manual Switcher in footer <input type="checkbox" name="enable_manual_switch_in_footer" id="enable_manual_switch_in_footer" <?php if ($options['enable_manual_switch_in_footer']) { echo "checked"; } ?>/>
+          </label><br/>
+
+          <h4>Allow manual switching on desktop</h4>
+          <p>This is most useful for debugging your themes. You probably
+          do not want to allow your users to switch to the mobile version whilst viewing on a desktop in other cases.</p>
+          <p><em>Manual switching (above) must be enabled for this to work properly.</em></p>
+          <label for="allow_desktop_switcher">Enable Manual Switcher Link whilst on Desktop <input type="checkbox" name="allow_desktop_switcher" id="allow_desktop_switcher" <?php if ($options['allow_desktop_switcher']) { echo "checked"; } ?>/>
+          </label>
+
+          <hr/>
           <h3>Mobile Device User Agents</h3>
           <p>Add user agents:          <span style="color: red">Coming soon...</span></p>
           <div class="submit">
-            <input type="submit" name="submit" value="<?php _e('Submit', 'MobileSmart'); ?>"/>
+            <input type="submit" name="submit" value="<?php _e('Update Settings', 'MobileSmart'); ?>"/>
           </div>
         </form>
       </div>
@@ -416,14 +506,145 @@ if (!class_exists("MobileSmart"))
       // if theme switching enabled
       if ($options['enable_theme_switching'] == true)
       {
-        // if is a mobile device
-        if ($this->detectIsMobile())
+        // if is a mobile device or is mobile due to cookie switching
+        if ($this->switcher_isMobile())
         {
           $theme = $options['mobile_theme'];
+          //echo "Switch theme: $theme<br/>";
+        }
+        else
+        {
+          //echo "Don't switch theme<br/><br/>";
         }
       }
 
       return $theme;
+    }
+
+     //---------------------------------------------------------------------------
+     // Function: switcher_isMobile
+     // Description: determines whether the mode is mobile or switched
+     // ---------------------------------------------------------------------------
+     function switcher_isMobile()
+     {
+        $is_mobile = false;
+
+        // get the mobile detect value
+        $detectmobile = $this->detectIsMobile();
+
+        //echo "Detect Mobile: ".($detectmobile ? "true" : "false")."<br/>";
+        //echo "Cookie: ".($this->switcher_cookie ? "true" : "false")." - value: {$this->switcher_cookie}<br/>";
+        
+        // check the switcher cookie
+        if ($detectmobile && $this->switcher_cookie)
+        {
+          if (($this->switcher_cookie == MOBILESMART_SWITCHER_DESKTOP_STR))
+          {
+            $is_mobile = false;
+          }
+          else
+          {
+            $is_mobile = true;
+          }
+        }
+        // if we're not a mobile, then we inverse the check string
+        else if (!$detectmobile)
+        {
+          if (($this->switcher_cookie == MOBILESMART_SWITCHER_MOBILE_STR))
+          {
+            $is_mobile = true;
+          }
+          else
+          {
+            $is_mobile = false;
+          }
+        }
+
+        //echo "Is Mobile: ".($is_mobile ? "true" : "false")."<br/><br/>";
+
+        return $is_mobile;
+     }
+
+     // ---------------------------------------------------------------------------
+     // Function: addSwitcherLink
+     // Description: checks if the plugin option is enabled and if so adds the html switcher
+     // ---------------------------------------------------------------------------
+     function addSwitcherLink()
+     {
+        // get options
+        $options = $this->getAdminOptions();
+
+        // if theme switching enabled
+        if ($options['enable_manual_switch'] == true)
+        {
+          // if is a mobile device or cookie switcher allows it.
+          $is_mobile = $this->switcher_isMobile();
+          if ($is_mobile || $options['allow_desktop_switcher'])
+          {
+            ?>
+      <!-- START MobileSmart - Switcher - http://www.dansmart.co.uk/ -->
+      <div id="mobilesmart_switcher">
+        <?php if ($is_mobile) : ?>
+          <a href="<?php echo $this->get_switcherLink(MOBILESMART_SWITCHER_DESKTOP_STR); ?>"><?php _e('Switch to desktop version', MOBILESMART_DOMAIN); ?></a>
+        <?php else : ?>
+          <a href="<?php echo $this->get_switcherLink(MOBILESMART_SWITCHER_MOBILE_STR); ?>"><?php _e('Switch to mobile version', MOBILESMART_DOMAIN); ?></a>
+        <?php endif; ?>
+      </div>
+      <!-- END MobileSmart - Switcher - http://www.dansmart.co.uk/ -->
+            <?php
+          }
+        }
+     }
+
+     // ---------------------------------------------------------------------------
+     // Function: action_addSwitcherLinkInFooter
+     // Description: action call for too add link into wp_footer
+     // ---------------------------------------------------------------------------
+     function action_addSwitcherLinkInFooter()
+     {
+        // get options
+        $options = $this->getAdminOptions();
+
+        // if theme switching enabled
+        if ($options['enable_manual_switch'] == true && $options['enable_manual_switch_in_footer'] == true)
+        {
+          // display the link
+          addSwitcherLink();
+        }
+     }
+
+    // ---------------------------------------------------------------------------
+    // Function: get_switcherLink
+    // Description: gets the link to display the switcher
+    // Parameters: version - should be 'mobile' or 'desktop'
+    // ---------------------------------------------------------------------------
+    function get_switcherLink($version)
+    {
+      $switcher_str = add_query_arg (array (MOBILESMART_SWITCHER_GET_PARAM => $version));
+
+      return $switcher_str;
+    }
+
+    // ---------------------------------------------------------------------------
+    // Function: action_addSwitcherLink
+    // Description: checks if the html switcher link has been called and acts appropriately
+    // ---------------------------------------------------------------------------
+    function action_handleSwitcherLink()
+    {
+      if (isset($_GET[MOBILESMART_SWITCHER_GET_PARAM]))
+      {
+        // get the version
+        $version = $_GET[MOBILESMART_SWITCHER_GET_PARAM];
+
+        // set the cookie to say which version it is
+        setcookie(MOBILESMART_SWITCHER_COOKIE, $version, time()+MOBILESMART_SWITCHER_COOKIE_EXPIRE, COOKIEPATH, COOKIE_DOMAIN);
+        
+        // save version in class for viewing the page before a refresh
+        $this->switcher_cookie = $version;
+
+        //echo "Version to set: $version<br/>";
+        //echo "Set version: $this->switcher_cookie<br/><br/>";
+      }
     }
 
     // ---------------------------------------------------------------------------
@@ -898,6 +1119,8 @@ if (isset($mobile_smart))
 
   // Actions
   add_action('admin_menu', MobileSmart_ap);
+  add_action('setup_theme', array($mobile_smart, 'action_handleSwitcherLink'));
+  add_action('wp_footer', array($mobile_smart, 'action_addSwitcherLinkInFooter'));
 
   // Filters
   add_filter('body_class', array(&$mobile_smart, 'filter_addBodyClasses'));
