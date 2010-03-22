@@ -19,7 +19,10 @@ Mobile Smart currently contains the following functionality:
 
 See the Frequently Asked Questions for guidance on how to use the plugin.
 
-Note: More functionality will be coming over the coming weeks, but this is the first version to get the ball rolling as some of you wanted to use this immediately.
+Note: More functionality will be coming over the coming weeks. On the Roadmap:
+ * Mobile theme - to get you going without needing a theme designer.
+ * Admin - user added Mobile Devices
+ * Mobile Device Log - for you to track which devices are using your website
 
 == Installation ==
 
