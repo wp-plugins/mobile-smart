@@ -1,12 +1,13 @@
 === Plugin Name ===
 Contributors: dolby_uk
 Donate link: http://www.dansmart.co.uk/
-Tags: iphone, mobile, theme switcher, mobile theme, 
+Tags: iphone, mobile, theme switcher, mobile theme, mobile device, series 60
 Requires at least: 2.7
 Tested up to: 2.9
 Stable tag: trunk
 
-With the Mobile Smart plugin you have a selection of tools to enable your theme to work better with mobile devices.
+The Mobile Smart plugin allows your Wordpress site to switch your theme if a user visits it using a mobile device,
+plus adds template tags to help you customise your theme based on the device viewing it.
 
 == Description ==
 
@@ -20,6 +21,7 @@ Mobile Smart currently contains the following functionality:
 See the Frequently Asked Questions for guidance on how to use the plugin.
 
 Note: More functionality will be coming over the coming weeks. On the Roadmap:
+
 * Mobile theme - to get you going without needing a theme designer.
 * Admin - user added Mobile Devices
 * Mobile Device Log - for you to track which devices are using your website
