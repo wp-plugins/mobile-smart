@@ -12,10 +12,10 @@ With the Mobile Smart plugin you have a selection of tools to enable your theme 
 
 Mobile Smart currently contains the following functionality:
 
-*Switch your theme to a mobile-ready theme if a mobile device is detected
-*Manual Switcher - to allow your user to manually switch between desktop and mobile versions. Available in 3 versions: widget, option to automatically insert into footer, or template tag.
-*Template functions to help determine which tier of mobile device (touch/smartphone/other) is viewing your site, to allow conditional content inclusion.
-*Adds device and tier specific CSS selectors to the body_class, to allow conditional CSS (e.g. so in the same way you have ".single" that you can target ".iphone" or ".mobile-tier-touch".)
+* Switch your theme to a mobile-ready theme if a mobile device is detected
+* Manual Switcher - to allow your user to manually switch between desktop and mobile versions. Available in 3 versions: widget, option to automatically insert into footer, or template tag.
+* Template functions to help determine which tier of mobile device (touch/smartphone/other) is viewing your site, to allow conditional content inclusion.
+* Adds device and tier specific CSS selectors to the body_class, to allow conditional CSS (e.g. so in the same way you have ".single" that you can target ".iphone" or ".mobile-tier-touch".)
 
 See the Frequently Asked Questions for guidance on how to use the plugin.
 
