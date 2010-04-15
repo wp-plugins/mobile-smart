@@ -2,7 +2,7 @@
 /*
 Plugin Name: Mobile Smart
 Plugin URI: http://www.dansmart.co.uk
-Version: v0.2
+Version: v0.2.1
 Author: <a href="http://www.dansmart.co.uk/">Dan Smart</a>
 Description: Mobile Smart contains helper tools for mobile devices, including allowing
              determination of mobile device type or tier in CSS and PHP code
@@ -164,7 +164,7 @@ if (!class_exists("MobileSmart"))
     {
       // translations
       load_plugin_textdomain(MOBILESMART_DOMAIN,'/wp-content/plugins/mobile-smart/languages');
-      
+
       if (isset($_COOKIE[MOBILESMART_SWITCHER_COOKIE]))
       {
         $this->switcher_cookie = $_COOKIE[MOBILESMART_SWITCHER_COOKIE];
@@ -269,6 +269,26 @@ if (!class_exists("MobileSmart"))
           }
         }
 
+        // Enable / Disable footer manual switching
+        if (isset($_POST['enable_manual_switch_in_footer']))
+        {
+          if ($options['enable_manual_switch_in_footer'] != true)
+          {
+            $options['enable_manual_switch_in_footer'] = true;
+
+            $status_messages[] = array('updated', __('Manual theme switching in footer enabled.', MOBILESMART_DOMAIN));
+          }
+        }
+        else
+        {
+          if ($options['enable_manual_switch_in_footer'] != false)
+          {
+            $options['enable_manual_switch_in_footer'] = false;
+
+            $status_messages[] = array('updated', __('Manual theme switching in footer disabled.', MOBILESMART_DOMAIN));
+          }
+        }
+
         // Enable / Disable desktop manual switching
         if (isset($_POST['allow_desktop_switcher']))
         {
@@ -294,7 +314,7 @@ if (!class_exists("MobileSmart"))
         {
           $options['mobile_theme'] = $_POST['theme'];
 
-          $status_messages[] = array('updated', __e('Mobile theme updated to: ', MOBILESMART_DOMAIN) . $_POST['theme']);
+          $status_messages[] = array('updated', __('Mobile theme updated to: ', MOBILESMART_DOMAIN) . $_POST['theme']);
         }
 
         // output status messages
@@ -534,7 +554,7 @@ if (!class_exists("MobileSmart"))
 
         //echo "Detect Mobile: ".($detectmobile ? "true" : "false")."<br/>";
         //echo "Cookie: ".($this->switcher_cookie ? "true" : "false")." - value: {$this->switcher_cookie}<br/>";
-        
+
         // check the switcher cookie
         if ($detectmobile && $this->switcher_cookie)
         {
@@ -558,6 +578,10 @@ if (!class_exists("MobileSmart"))
           {
             $is_mobile = false;
           }
+        }
+        else
+        {
+          $is_mobile = $detectmobile;
         }
 
         //echo "Is Mobile: ".($is_mobile ? "true" : "false")."<br/><br/>";
@@ -609,7 +633,7 @@ if (!class_exists("MobileSmart"))
         if ($options['enable_manual_switch'] == true && $options['enable_manual_switch_in_footer'] == true)
         {
           // display the link
-          addSwitcherLink();
+          $this->addSwitcherLink();
         }
      }
 
@@ -638,7 +662,7 @@ if (!class_exists("MobileSmart"))
 
         // set the cookie to say which version it is
         setcookie(MOBILESMART_SWITCHER_COOKIE, $version, time()+MOBILESMART_SWITCHER_COOKIE_EXPIRE, COOKIEPATH, COOKIE_DOMAIN);
-        
+
         // save version in class for viewing the page before a refresh
         $this->switcher_cookie = $version;
 
