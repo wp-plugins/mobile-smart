@@ -1,9 +1,9 @@
 === Plugin Name ===
 Contributors: dolby_uk
 Donate link: http://www.dansmart.co.uk/
-Tags: iphone, mobile, theme switcher, mobile theme, mobile device, series 60
+Tags: iphone, mobile, theme switcher, mobile theme, mobile device, series 60, ipad, blackberry, android
 Requires at least: 2.7
-Tested up to: 2.9
+Tested up to: 3.1
 Stable tag: trunk
 
 The Mobile Smart plugin allows your Wordpress site to switch your theme if a user visits it using a mobile device,
@@ -11,7 +11,7 @@ plus adds template tags to help you customise your theme based on the device vie
 
 == Description ==
 
-Mobile Smart currently contains the following functionality:
+Mobile Smart, using detection from the MobileESP project (http://www.mobileesp.com) allows the following:
 
 * Switch your theme to a mobile-ready theme if a mobile device is detected
 * Manual Switcher - to allow your user to manually switch between desktop and mobile versions. Available in 3 versions: widget, option to automatically insert into footer, or template tag.
@@ -20,11 +20,20 @@ Mobile Smart currently contains the following functionality:
 
 See the Frequently Asked Questions for guidance on how to use the plugin.
 
-Note: More functionality will be coming over the coming weeks. On the Roadmap:
+A number of devices have now been added to this plugin. Recently added devices, via MobileESP project include:
 
-* Mobile theme - to get you going without needing a theme designer.
-* Admin - user added Mobile Devices
-* Mobile Device Log - for you to track which devices are using your website
+* IPad
+* Blackberry Tablet
+* Android Tablet
+* Windows Phone 7
+* Other Blackberry devices (e.g. Blackberry Touch)
+* Gaming devices with browsers (Sony Playstation, XBox, Nintendo devices)
+
+
+There are also two new tiers:
+
+* Tablet (MOBILE_DEVICE_TIER_TABLET) - for tablets (currently iPad, Android, Blackberry)
+* Rich CSS (MOBILE_DEVICE_TIER_RICH_CSS) - for devices that are capable for viewing content with CSS optimised for the iPhone, but may not necessarily support Javascript
 
 == Installation ==
 
@@ -60,7 +69,7 @@ You have the option of the following:
 
   // display manual switcher link - requires Manual Switching to be enabled
   $mobile_smart->addSwitcherLink();
->`
+?>`
 
 The Manual Switcher displays the switcher link in a div with an id of *mobilesmart_switcher*
 
@@ -149,9 +158,14 @@ Initial release, containing mobile device detection, body classes, and mobile ti
 = 0.2 =
 Added Manual Mobile Switcher - widget, link, and template tag.
 
+= 1.0 =
+Based detector on Mobile ESP project, meaning device detection will stay up to date with latest mobile devices
+
 == Upgrade Notice ==
 
 = 0.1 =
 Initial release.
 
 = 0.2 =
+
+= 0.3 =
