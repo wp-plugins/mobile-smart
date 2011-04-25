@@ -2,13 +2,14 @@
 /*
 Plugin Name: Mobile Smart
 Plugin URI: http://www.dansmart.co.uk
-Version: v0.2.1
+Version: v1.0
 Author: <a href="http://www.dansmart.co.uk/">Dan Smart</a>
 Description: Mobile Smart contains helper tools for mobile devices, including allowing
-             determination of mobile device type or tier in CSS and PHP code
+             determination of mobile device type or tier in CSS and PHP code, using
+             detection by Mobile ESP project.
  */
 
-/*  Copyright 2009 Dan Smart  (email : dan@dansmart.co.uk)
+/*  Copyright 2011 Dan Smart  (email : dan@dansmart.co.uk)
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -26,44 +27,68 @@ Description: Mobile Smart contains helper tools for mobile devices, including al
 */
 
 
-// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-// Attributation:
-//  - Parts of the detection code are based upon the mobile detect script by
-//    Anthony Hand
-//     - The code, "Detecting Smartphones Using PHP"
-//       by Anthony Hand, is licensed under a Creative Commons
-//       Attribution 3.0 United States License.
-// - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+/* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+ * Attributation:
+ *  - Detection performed by MobileESP project code (www.mobileesp.com)
+ * - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
+
 
 // -------------------------------------------------------------------------
 // Defines
 // -------------------------------------------------------------------------
 define('MOBILESMART_DOMAIN', 'mobilesmart');
+define('MOBILESMART_PLUGIN_PATH', WP_PLUGIN_DIR . '\mobile-smart');
 
+// MAIN DEVICES (for more, see lib/mdetect.php which can be detected directly)
 define ('MOBILE_DEVICE_OPERA_MINI', 'operamini');
 define ('MOBILE_DEVICE_IPHONE', 'iphone');
+define ('MOBILE_DEVICE_IPAD', 'ipad');
 define ('MOBILE_DEVICE_IPOD', 'ipod');
-define ('MOBILE_DEVICE_ANDROID_WEBKIT', 'android webkit');
+define ('MOBILE_DEVICE_ANDROID', 'android');
+define ('MOBILE_DEVICE_ANDROID_WEBKIT', 'android_webkit');
+define ('MOBILE_DEVICE_ANDROID_TABLET', 'android table');
 define ('MOBILE_DEVICE_SERIES60', 'series_60');
 define ('MOBILE_DEVICE_SYMBIAN_OS', 'symbian_os');
 define ('MOBILE_DEVICE_WINDOWS_MOBILE', 'windows_mobile');
+define ('MOBILE_DEVICE_WINDOWS_PHONE_7', 'windows_phone_7');
 define ('MOBILE_DEVICE_BLACKBERRY', 'blackberry');
+define ('MOBILE_DEVICE_BLACKBERRY_TABLET', 'blackberry_tablet');
+define ('MOBILE_DEVICE_BLACKBERRY_WEBKIT', 'blackberry_webkit');
+define ('MOBILE_DEVICE_BLACKBERRY_TOUCH', 'blackberry_touch');
 define ('MOBILE_DEVICE_PALM_OS', 'palm_os');
 define ('MOBILE_DEVICE_OTHER', 'other_mobile');
 
+// TIERS
 define ('MOBILE_DEVICE_TIER_TOUCH', 'mobile-tier-touch');
+define ('MOBILE_DEVICE_TIER_TABLET', 'mobile-tier-tablet');
+define ('MOBILE_DEVICE_TIER_RICH_CSS', 'mobile-tier-rich-css');
 define ('MOBILE_DEVICE_TIER_SMARTPHONE', 'mobile-tier-smartphone');
 define ('MOBILE_DEVICE_TIER_OTHER', 'mobile-tier-other-mobile');
 
+// MANUAL SWITCHING
 define ('MOBILESMART_SWITCHER_GET_PARAM', 'mobile_switch');
 define ('MOBILESMART_SWITCHER_MOBILE_STR', 'mobile');
 define ('MOBILESMART_SWITCHER_DESKTOP_STR', 'desktop');
 define ('MOBILESMART_SWITCHER_COOKIE', 'mobile-smart-switcher');
 define ('MOBILESMART_SWITCHER_COOKIE_EXPIRE', 3600); // 3600
 
+
+// SOME DUMMY TIER SCREEN DIMENSIONS FOR TRANSCODING IMAGES
+define ('MOBILE_DEVICE_TIER_TOUCH_MAX_WIDTH', 300);
+define ('MOBILE_DEVICE_TIER_TOUCH_MAX_HEIGHT', 400);
+define ('MOBILE_DEVICE_TIER_TABLET_MAX_WIDTH', 300);
+define ('MOBILE_DEVICE_TIER_TABLET_MAX_HEIGHT', 400);
+define ('MOBILE_DEVICE_TIER_RICH_CSS_MAX_WIDTH', 300);
+define ('MOBILE_DEVICE_TIER_RICH_CSS_MAX_HEIGHT', 400);
+define ('MOBILE_DEVICE_TIER_SMARTPHONE_MAX_WIDTH', 200);
+define ('MOBILE_DEVICE_TIER_SMARTPHONE_MAX_HEIGHT', 250);
+define ('MOBILE_DEVICE_TIER_OTHER_MAX_WIDTH', 100);
+define ('MOBILE_DEVICE_TIER_OTHER_MAX_HEIGHT', 150);
+
 // -------------------------------------------------------------------------
 // Includes
 // -------------------------------------------------------------------------
+require_once('lib/mdetect.php');
 require_once('mobile-smart-switcher-widget.php');
 
 // -------------------------------------------------------------------------
@@ -71,7 +96,7 @@ require_once('mobile-smart-switcher-widget.php');
 // -------------------------------------------------------------------------
 if (!class_exists("MobileSmart"))
 {
-  class MobileSmart
+  class MobileSmart extends uagent_info
   {
     // -------------------------------------------------------------------------
     // Attributes
@@ -85,74 +110,6 @@ if (!class_exists("MobileSmart"))
 
     var $switcher_cookie = null;
 
-    // Initialise UA strings
-    var $device_ua_array = array(
-       'engineWebKit' => 'webkit',
-       'deviceAndroid' => 'android',
-       'deviceIphone' => 'iphone',
-       'deviceIpod' => 'ipod',
-       'deviceSymbian' => 'symbian',
-       'deviceS60' => 'series60',
-       'deviceS70' => 'series70',
-       'deviceS80' => 'series80',
-       'deviceS90' => 'series90',
-       'deviceWinMob' => 'windows ce',
-       'deviceWindows' => 'windows',
-       'deviceIeMob' => 'iemobile',
-       'enginePie' => "wm5 pie", //An old Windows Mobile
-       'deviceBB' => 'blackberry',
-       'vndRIM' => 'vnd.rim', //Detectable when BB devices emulate IE or Firefox
-       'devicePalm' => 'palm',
-
-       'engineBlazer' => 'blazer', //Old Palm
-       'engineXiino' => 'xiino', //Another old Palm
-
-       //Initialize variables for mobile-specific content.
-       'vndwap' => 'vnd.wap',
-       'wml' => 'wml',
-
-       //Initialize variables for other random devices and mobile browsers.
-       'deviceBrew' => 'brew',
-       'deviceDanger' => 'danger',
-       'deviceHiptop' => 'hiptop',
-       'devicePlaystation' => 'playstation',
-       'deviceNintendoDs' => 'nitro',
-       'deviceNintendo' => 'nintendo',
-       'deviceWii' => 'wii',
-       'deviceXbox' => 'xbox',
-       'deviceArchos' => 'archos',
-
-       'engineOpera' => "opera", //Popular browser
-       'engineNetfront' => "netfront", //Common embedded OS browser
-       'engineUpBrowser' => 'up.browser', //common on some phones
-       'engineOpenWeb' => 'openweb', //Transcoding by OpenWave server
-       'deviceMidp' => "midp", //a mobile Java technology
-       'uplink' => "up.link",
-
-       'devicePda' => 'pda', //some devices report themselves as PDAs
-       'mini' => 'mini',  //Some mobile browsers put 'mini' in their names.
-       'mobile' => 'mobile', //Some mobile browsers put 'mobile' in their user agent strings.
-       'mobi' => 'mobi', //Some mobile browsers put 'mobi' in their user agent strings.
-
-       //Use Maemo, Tablet, and Linux to test for Nokia's Internet Tablets.
-       'maemo' => 'maemo',
-       'maemoTablet' => 'tablet',
-       'linux' => 'linux',
-       'qtembedded' => "qt embedded", //for Sony Mylo
-       'mylocom2' => 'com2', //for Sony Mylo also
-
-       //In some UserAgents, the only clue is the manufacturer.
-       'manuSonyEricsson' => "sonyericsson",
-       'manuericsson' => "ericsson",
-       'manuSamsung1' => "sec-sgh",
-       'manuSony' => "sony",
-
-       //In some UserAgents, the only clue is the operator.
-       'svcDocomo' => "docomo",
-       'svcKddi' => "kddi",
-       'svcVodafone' => "vodafone"
-      ); // end user agent string array
-
     // -------------------------------------------------------------------------
     // Methods
     // -------------------------------------------------------------------------
@@ -160,16 +117,26 @@ if (!class_exists("MobileSmart"))
     // -------------------------------------------------------------------------
     // Method: Constructor
     // -------------------------------------------------------------------------
+    // PHP 4 version
     function MobileSmart()
     {
+      // init parent constructor
+      parent::uagent_info();
+      
       // translations
-      load_plugin_textdomain(MOBILESMART_DOMAIN,'/wp-content/plugins/mobile-smart/languages');
+      load_plugin_textdomain(MOBILESMART_DOMAIN, MOBILESMART_PLUGIN_PATH.'/language');
 
       if (isset($_COOKIE[MOBILESMART_SWITCHER_COOKIE]))
       {
         $this->switcher_cookie = $_COOKIE[MOBILESMART_SWITCHER_COOKIE];
         //echo "Construct cookie: $this->switcher_cookie<br/><br/>";
       }
+    }
+    
+    // PHP 5 version
+    function __construct()
+    {
+      $this->MobileSmart();
     }
 
     // -------------------------------------------------------------------------
@@ -308,6 +275,26 @@ if (!class_exists("MobileSmart"))
             $status_messages[] = array('updated', __('Manual theme switching on desktop disabled.', MOBILESMART_DOMAIN));
           }
         }
+        
+        // Enable / Disable image transcoding
+        if (isset($_POST['enable_image_transcoding']))
+        {
+          if ($options['enable_image_transcoding'] != true)
+          {
+            $options['enable_image_transcoding'] = true;
+
+            $status_messages[] = array('updated', __('Image transcoding enabled.', MOBILESMART_DOMAIN));
+          }
+        }
+        else
+        {
+          if ($options['enable_image_transcoding'] != false)
+          {
+            $options['enable_image_transcoding'] = false;
+
+            $status_messages[] = array('updated', __('Image transcoding disabled.', MOBILESMART_DOMAIN));
+          }
+        }
 
         // Get choice of mobile theme
         if ($options['mobile_theme'] != $_POST['theme'])
@@ -376,6 +363,14 @@ if (!class_exists("MobileSmart"))
           <p><em>Manual switching (above) must be enabled for this to work properly.</em></p>
           <label for="allow_desktop_switcher">Enable Manual Switcher Link whilst on Desktop <input type="checkbox" name="allow_desktop_switcher" id="allow_desktop_switcher" <?php if ($options['allow_desktop_switcher']) { echo "checked"; } ?>/>
           </label>
+          
+          <hr/>
+          <h3>Transcoding</h3>
+          <h4>In development: Enable image transcoding</h4>
+          <p>Do not enable this unless you want to try the TimThumb powered image transcoding.</p>
+          <p><em>Manual switching (above) must be enabled for this to work properly.</em></p>
+          <label for="enable_image_transcoding">Enable image transcoding <input type="checkbox" name="enable_image_transcoding" id="enable_image_transcoding" <?php if ($options['enable_image_transcoding']) { echo "checked"; } ?>/>
+          </label>
 
           <hr/>
           <h3>Mobile Device User Agents</h3>
@@ -394,7 +389,7 @@ if (!class_exists("MobileSmart"))
     // ---------------------------------------------------------------------------
     function getUserAgentString()
     {
-      return strtolower($_SERVER['HTTP_USER_AGENT']);
+      return $this->Get_Uagent();
     }
 
     // ---------------------------------------------------------------------------
@@ -403,7 +398,7 @@ if (!class_exists("MobileSmart"))
     // ---------------------------------------------------------------------------
     function getAcceptString()
     {
-      return strtolower($_SERVER['HTTP_ACCEPT']);
+      return $this->Get_HttpAccept();
     }
 
     // ---------------------------------------------------------------------------
@@ -414,43 +409,71 @@ if (!class_exists("MobileSmart"))
     {
       if ($this->device == '')
       {
-        if ($this->detectOperaMini())
+        if ($this->DetectOperaMini())
         {
           $this->device = MOBILE_DEVICE_OPERA_MINI;
         }
-        else if ($this->detectIphone())
+        else if ($this->DetectIpad())
+        {
+          $this->device = MOBILE_DEVICE_IPAD;
+        }
+        else if ($this->DetectIphone())
         {
           $this->device = MOBILE_DEVICE_IPHONE;
         }
-        else if ($this->detectIpod())
+        else if ($this->DetectIpod())
         {
           $this->device = MOBILE_DEVICE_IPOD;
         }
-        else if ($this->detectAndroidWebKit())
+        else if ($this->DetectAndroid())
+        {
+          $this->device = MOBILE_DEVICE_ANDROID;
+        }
+        else if ($this->DetectAndroidTablet())
+        {
+          $this->device = MOBILE_DEVICE_ANDROID_TABLET;
+        }
+        else if ($this->DetectAndroidWebkit())
         {
           $this->device = MOBILE_DEVICE_ANDROID_WEBKIT;
         }
-        else if ($this->detectSeries60())
+        else if ($this->DetectSeries60())
         {
           $this->device = MOBILE_DEVICE_SERIES60;
         }
-        else if ($this->detectSymbianOS())
+        else if ($this->DetectSymbianOS())
         {
           $this->device = MOBILE_DEVICE_SYMBIAN_OS;
         }
-        else if ($this->detectWindowsMobile())
+        else if ($this->DetectWindowsMobile())
         {
           $this->device = MOBILE_DEVICE_WINDOWS_MOBILE;
         }
-        else if ($this->detectBlackBerry())
+        else if ($this->DetectWindowsPhone7())
+        {
+          $this->device = MOBILE_DEVICE_WINDOWS_PHONE_7;
+        }
+        else if ($this->DetectBlackBerry())
         {
           $this->device = MOBILE_DEVICE_BLACKBERRY;
         }
-        else if ($this->detectPalmOS())
+        else if ($this->DetectBlackBerryTablet())
+        {
+          $this->device = MOBILE_DEVICE_BLACKBERRY_TABLET;
+        }
+        else if ($this->DetectBlackBerryWebkit())
+        {
+          $this->device = MOBILE_DEVICE_BLACKBERRY_WEBKIT;
+        }
+        else if ($this->DetectBlackBerryTouch())
+        {
+          $this->device = MOBILE_DEVICE_BLACKBERRY_TOUCH;
+        }
+        else if ($this->DetectPalmOS())
         {
           $this->device = MOBILE_DEVICE_PALM_OS;
         }
-        else if ($this->detectIsMobile())
+        else if ($this->DetectIsMobile())
         {
           $this->device = MOBILE_DEVICE_OTHER;
         }
@@ -467,15 +490,23 @@ if (!class_exists("MobileSmart"))
     {
       if ($this->deviceTier == '')
       {
-        if ($this->detectTierTouch())
+        if ($this->DetectTierTablet())
+        {
+          $this->device_tier = MOBILE_DEVICE_TIER_TABLET;
+        }
+        if ($this->DetectTierTouch())
         {
           $this->device_tier = MOBILE_DEVICE_TIER_TOUCH;
         }
-        if ($this->detectTierSmartphones())
+        if ($this->DetectTierRichCSS())
+        {
+          $this->device_tier = MOBILE_DEVICE_TIER_RICH_CSS;
+        }
+        if ($this->DetectTierSmartphones())
         {
           $this->device_tier = MOBILE_DEVICE_TIER_SMARTPHONE;
         }
-        if ($this->detectTierOtherPhones())
+        if ($this->DetectTierOtherPhones())
         {
           $this->device_tier = MOBILE_DEVICE_TIER_OTHER;
         }
@@ -498,7 +529,7 @@ if (!class_exists("MobileSmart"))
       if ($options['enable_theme_switching'] == true)
       {
         // if is a mobile device
-        if ($this->detectIsMobile())
+        if ($this->DetectIsMobile())
         {
           $classes[] .= "mobile" ;
         }
@@ -550,7 +581,7 @@ if (!class_exists("MobileSmart"))
         $is_mobile = false;
 
         // get the mobile detect value
-        $detectmobile = $this->detectIsMobile();
+        $detectmobile = $this->DetectIsMobile();
 
         //echo "Detect Mobile: ".($detectmobile ? "true" : "false")."<br/>";
         //echo "Cookie: ".($this->switcher_cookie ? "true" : "false")." - value: {$this->switcher_cookie}<br/>";
@@ -587,6 +618,15 @@ if (!class_exists("MobileSmart"))
         //echo "Is Mobile: ".($is_mobile ? "true" : "false")."<br/><br/>";
 
         return $is_mobile;
+     }
+     
+     // ---------------------------------------------------------------------------
+     // Function: DetectIsMobile
+     // Description: is it a mobile device (including iPad)
+     // ---------------------------------------------------------------------------
+     function DetectIsMobile()
+     {
+       return ( $this->DetectMobileQuick() || $this->DetectIpad() );
      }
 
      // ---------------------------------------------------------------------------
@@ -661,7 +701,11 @@ if (!class_exists("MobileSmart"))
         $version = $_GET[MOBILESMART_SWITCHER_GET_PARAM];
 
         // set the cookie to say which version it is
-        setcookie(MOBILESMART_SWITCHER_COOKIE, $version, time()+MOBILESMART_SWITCHER_COOKIE_EXPIRE, COOKIEPATH, COOKIE_DOMAIN);
+        setcookie(MOBILESMART_SWITCHER_COOKIE,
+                  $version,
+                  time()+MOBILESMART_SWITCHER_COOKIE_EXPIRE,
+                  COOKIEPATH,
+                  str_replace('http://www','',get_bloginfo('url')));
 
         // save version in class for viewing the page before a refresh
         $this->switcher_cookie = $version;
@@ -669,6 +713,15 @@ if (!class_exists("MobileSmart"))
         //echo "Version to set: $version<br/>";
         //echo "Set version: $this->switcher_cookie<br/><br/>";
       }
+    }
+    
+    // ---------------------------------------------------------------------------
+    // Function: isTierTablet
+    // Description: is the current device tier - table
+    // ---------------------------------------------------------------------------
+    function isTierTablet()
+    {
+      return $this->getCurrentDeviceTier() == MOBILE_DEVICE_TIER_TABLET;
     }
 
     // ---------------------------------------------------------------------------
@@ -678,6 +731,15 @@ if (!class_exists("MobileSmart"))
     function isTierTouch()
     {
       return $this->getCurrentDeviceTier() == MOBILE_DEVICE_TIER_TOUCH;
+    }
+    
+    // ---------------------------------------------------------------------------
+    // Function: isTierRichCSS
+    // Description: is the current device tier - Rich CSS
+    // ---------------------------------------------------------------------------
+    function isTierRichCSS()
+    {
+      return $this->getCurrentDeviceTier() == MOBILE_DEVICE_TIER_RICH_CSS;
     }
 
     // ---------------------------------------------------------------------------
@@ -698,428 +760,93 @@ if (!class_exists("MobileSmart"))
       return $this->getCurrentDeviceTier() == MOBILE_DEVICE_TIER_OTHER;
     }
 
-    // ***************************************************************************
-    // DETECTION FUNCTIONS
-    // ***************************************************************************
-
-    // ---------------------------------------------------------------------------
-    // Function: detectOperaMini
-    // Description: special case to detect Opera Mini, uses different headers
-    // ---------------------------------------------------------------------------
-    function detectOperaMini()
-    {
-      if (isset($_SERVER['ALL_HTTP']) && strpos(strtolower($_SERVER['ALL_HTTP']), 'operamini') !== false)
-       return true;
-      else {
-        if (isset($_SERVER['HTTP_X_OPERAMINI_PHONE_UA']))
-          return true;
-        else return false;
-      }
-    }
-
-    // ---------------------------------------------------------------------------
-    // Function: detectIphone
-    // Description: detect if it is an iPhone (not an iPod)
-    // ---------------------------------------------------------------------------
-     function detectIphone()
+     /**
+      * Magic function - to catch old naming scheme of method with decapitalised first character. Change was caused by inclusion of mdetect.php
+      * @param type $name
+      * @param type $arguments 
+      */
+     function __call($name, $arguments)
      {
-       $result = false;
-       if (stripos($this->getUserAgentString(), $this->device_ua_array['deviceIphone']) > -1)
+       $old_naming_scheme = ucwords($name);
+       
+       // check for method with capitalised first character - for backwards compatibility, as previous plugin had lowercase first characters in method name
+       if (method_exists($this, $old_naming_scheme))
        {
-           if ($this->detectIpod() != true) // Ipod touch reports as Iphone also so don't include
-           {
-              $result = true;
-           }
+         $name($arguments);
        }
-       return $result;
      }
 
-     // ---------------------------------------------------------------------------
-    // Function: detectIpod
-    // Description: detect if it is an iPod Touch
-    // ---------------------------------------------------------------------------
-     function detectIpod()
+     // ------------------------------------------------------------------------
+     // Function: filter_processContent
+     // Description: processes the post's content and transcodes the post's images
+     // Credits: idea and regexp taken from wpmp_transcoder.php, but brought into
+     //          MobileSmart domain with improvements
+     // ------------------------------------------------------------------------
+     function filter_processContent($the_content)
      {
-        $result = false;
-        if (stripos($this->getUserAgentString(), $this->device_ua_array['deviceIpod']) > -1)
-        {
-           $result = true;
-        }
+       $options = $this->getAdminOptions();
+       
+       // only process the content if we're in mobile mode
+      if (!$this->switcher_isMobile() || !$options['enable_image_transcoding'])
+        return $the_content;
+     
+       preg_match_all("/\<img.* src=((?:'[^']*')|(?:\"[^\"]*\")).*\>/Usi", $the_content, $images);
 
-        return $result;
-     }
-
-      // ---------------------------------------------------------------------------
-      // Function: detectIphoneFamily
-      // Description: detects if it is an iPhone or iPod Touch
-      // ---------------------------------------------------------------------------
-     function detectIphoneFamily()
-     {
-        $result = false;
-        if ($this->detectIphone() || $this->detectIpod)
-        {
-         $result = true;
-        }
-
-        return $result;
-     }
-
-      // ---------------------------------------------------------------------------
-      // Function: detectAndroid
-      // Description: detects if it is an Android based handset
-      // ---------------------------------------------------------------------------
-     function detectAndroid()
-     {
-       $result = false;
-        if (stripos($this->getUserAgentString(), $this->device_ua_array['deviceAndroid']) > -1)
-        {
-          $result = true;
-        }
-
-        return $result;
-     }
-
-     // ---------------------------------------------------------------------------
-      // Function: detectWebkit
-      // Description: detects if it is a Webkit browser
-      // ---------------------------------------------------------------------------
-     function detectWebkit()
-     {
-        $result = false;
-        if (stripos($this->getUserAgentString(), $this->device_ua_array['engineWebKit']) > -1)
-        {
-          $result = true;
-        }
-
-        return $result;
-     }
-
-     // ---------------------------------------------------------------------------
-      // Function: detectAndroidWebKit
-      // Description: detects if it is an Android based handset with Webkit browser
-      // ---------------------------------------------------------------------------
-     function detectAndroidWebKit()
-     {
-        $result = false;
-        if ($this->detectAndroid() && $this->detectWebkit())
-        {
-          $result = true;
-        }
-
-        return $result;
-     }
-
-
-     // ---------------------------------------------------------------------------
-      // Function: detectSeries60
-      // Description: detects if it is a Series 60 based browser
-      // ---------------------------------------------------------------------------
-     function detectSeries60()
-     {
-        $result = false;
-        // Check if it's WebKit first
-        if ($this->detectWebkit() == true)
-        {
-          // check if it's Series 60
-          if (stripos($this->getUserAgentString(), $this->device_ua_array['deviceSymbian']) > -1 ||
-              stripos($this->getUserAgentString(), $this->device_ua_array['deviceS60']) > -1)
-          {
-             $result = true;
-          }
-        }
-
-        return $result;
-     }
-
-     // ---------------------------------------------------------------------------
-      // Function: detectSymbianOS
-      // Description: detects if it is any Symbian OS-based device,
-      //              including older S60, Series 70, Series 80, Series 90, and UIQ,
-      //              or other browsers running on these devices.
-      // ---------------------------------------------------------------------------
-     function detectSymbianOS()
-     {
-       $result = false;
-         if (stripos($this->getUserAgentString(), $this->device_ua_array['deviceSymbian']) > -1 ||
-             stripos($this->getUserAgentString(), $this->device_ua_array['deviceS60']) > -1 ||
-             stripos($this->getUserAgentString(), $this->device_ua_array['deviceS70']) > -1 ||
-             stripos($this->getUserAgentString(), $this->device_ua_array['deviceS80']) > -1 ||
-             stripos($this->getUserAgentString(), $this->device_ua_array['deviceS90']) > -1)
-        {
-          $result = true;
-        }
-
-        return $result;
-     }
-
-     // ---------------------------------------------------------------------------
-      // Function: detectWindowsMobile
-      // Description: detects if it is a Windows Mobile based device
-      // ---------------------------------------------------------------------------
-     function detectWindowsMobile()
-     {
-       $result = false;
-        // Most devices use 'Windows CE', but some report 'iemobile'
-        // and some older ones report as 'PIE' for Pocket IE.
-        if (stripos($this->getUserAgentString(), $this->device_ua_array['deviceWinMob']) > -1 ||
-            stripos($this->getUserAgentString(), $this->device_ua_array['deviceIeMob']) > -1 ||
-            stripos($this->getUserAgentString(), $this->device_ua_array['enginePie']) > -1)
-        {
-            $result = true;
-        }
-
-        if ($this->detectWapWml() == true &&
-            stripos($this->getUserAgentString(), $this->device_ua_array['deviceWindows']) > -1)
-        {
-          $result = true;
-        }
-
-        return $result;
-     }
-
-     // ---------------------------------------------------------------------------
-      // Function: detectBlackberry
-      // Description: detects if it is a Blackberry
-      // ---------------------------------------------------------------------------
-     function detectBlackBerry()
-     {
-       $result = false;
-       if (stripos($this->getUserAgentString(), $this->device_ua_array['deviceBB']) > -1)
+       foreach ($images[0] as $images_key=>$image)
        {
-         $result = true;
-       }
-       if (stripos($this->getAcceptString(), $this->device_ua_array['vndRIM']) > -1)
-       {
-         $result = true;
+        $img_src = $images[1][$images_key];
+
+        // remove the site url
+        $site_url = str_replace('/', '\/', get_bloginfo('siteurl'));
+        $img_src = preg_replace("/[\"|']".$site_url."(.*)[\"|']/", '\1', $img_src);
+
+        // get the width and height
+        preg_match_all("/(width|height)[=:'\"\s]*(\d+)(?:px|[^\d])/Usi", $image, $img_dimensions);
+
+        $width = 0; $height = 0;
+        foreach ($img_dimensions[2] as $dim_index=>$dim_val)
+        {
+          if ($img_dimensions[1][$dim_index] == 'height')
+            $height = $dim_val;
+          else if ($img_dimensions[1][$dim_index] == 'width')
+            $width = $dim_val;
+        }
+
+        // * * * * * * *
+        // to do: get max dimensions of images for each device / tier from somewhere like WURFL
+        switch ($this->deviceTier)
+        {
+          case MOBILE_DEVICE_TIER_TOUCH: $max_width = MOBILE_DEVICE_TIER_TOUCH_MAX_WIDTH; $max_height = MOBILE_DEVICE_TIER_TOUCH_MAX_HEIGHT; break;
+          case MOBILE_DEVICE_TIER_TABLET: $max_width = MOBILE_DEVICE_TIER_TABLET_MAX_WIDTH; $max_height = MOBILE_DEVICE_TIER_TABLET_MAX_HEIGHT; break;
+          case MOBILE_DEVICE_TIER_SMARTPHONE: $max_width = MOBILE_DEVICE_TIER_SMARTPHONE_MAX_WIDTH; $max_height = MOBILE_DEVICE_TIER_SMARTPHONE_MAX_HEIGHT; break;
+          case MOBILE_DEVICE_TIER_RICH_CSS: $max_width = MOBILE_DEVICE_TIER_RICH_CSS_MAX_WIDTH; $max_height = MOBILE_DEVICE_TIER_RICH_CSS_MAX_HEIGHT; break;
+          case MOBILE_DEVICE_TIER_OTHER: $max_width = MOBILE_DEVICE_TIER_OTHER_MAX_WIDTH; $max_height = MOBILE_DEVICE_TIER_OTHER_MAX_HEIGHT; break;
+          default: $max_width = 100; $max_height = 100; break;
+        }
+        // * * * * * * *
+
+        // rescale image
+        if ($width > $max_width)
+        {
+          $height = floor($width / $max_width) * $height;
+          $width = $max_width;
+        }
+
+        if ($height > $max_height)
+        {
+          $width = floor($height / $max_height) * $width;
+          $height = $max_height;
+        }
+
+        // create new rescaled image
+        $rescaled_image = '<img src="'.MOBILESMART_PLUGIN_URL.'/includes/timthumb.php?src='.$img_src.'&w='.$width.'&h='.$height.'&zc=0"'
+                          .' width="'.$width.'"'.' height="'.$height.'"'.'/>';
+
+        // replace the entire text of the old image with the text of the resized image
+        $the_content = str_replace($image, $rescaled_image, $the_content);
        }
 
-       return $result;
-     }
-
-     // ---------------------------------------------------------------------------
-      // Function: detectPalmOS
-      // Description: detects if it is a PalmOS
-      // ---------------------------------------------------------------------------
-     function detectPalmOS()
-     {
-       $result = false;
-        // Most devices nowadays report as 'Palm', but some older ones reported as Blazer or Xiino.
-        if (stripos($this->getUserAgentString(), $this->device_ua_array['devicePalm']) > -1 ||
-            stripos($this->getUserAgentString(), $this->device_ua_array['engineBlazer']) > -1 ||
-            stripos($this->getUserAgentString(), $this->device_ua_array['engineXiino']) > -1)
-        {
-          $result = true;
-        }
-
-        return $result;
-     }
-
-     // ---------------------------------------------------------------------------
-      // Function: detectSmartphone
-      // Description: detects if it is a smartphone of any kind
-      // ---------------------------------------------------------------------------
-     function detectSmartphone()
-     {
-       $result = false;
-        if ($this->detectIphoneFamily() == true)
-           $result = true;
-        if ($this->detectSeries60() == true)
-           $result = true;
-        if ($this->detectSymbianOS() == true)
-           $result = true;
-        if ($this->detectWindowsMobile() == true)
-           $result = true;
-        if ($this->detectBlackBerry() == true)
-           $result = true;
-        if ($this->detectPalmOS() == true)
-           $result = true;
-        if ($this->detectAndroid() == true)
-           $result = true;
-        if ($this->detectOperaMini() == true)
-           $result = true;
-
-        return $result;
-     }
-
-
-     // ---------------------------------------------------------------------------
-      // Function: detectBrewDevice
-      // Description: detects if it is a brew device
-      // ---------------------------------------------------------------------------
-     function detectBrewDevice()
-     {
-       $result = false;
-
-       if (stripos($this->getUserAgentString(), $this->device_ua_array['deviceBrew']) > -1)
-       {
-         $result = true;
-       }
-
-       return $result;
-     }
-
-     // ---------------------------------------------------------------------------
-     // Function: detectDangerHiptop
-     // Description: detects if it is a Danger Hiptop device
-     // ---------------------------------------------------------------------------
-     function detectDangerHiptop()
-     {
-       $result = false;
-       if (stripos($this->getUserAgentString(), $this->device_ua_array['deviceDanger']) > -1 ||
-            stripos($this->getUserAgentString(), $this->device_ua_array['deviceHiptop']) > -1)
-        {
-          $result = true;
-        }
-
-        return $result;
-     }
-
-     // ---------------------------------------------------------------------------
-      // Function: detectOperaMobile
-      // Description: detects if it is Opera Mobile (different to Opera Mini)
-      // ---------------------------------------------------------------------------
-     function detectOperaMobile()
-     {
-       $result = false;
-        if (stripos($this->getUserAgentString(), $this->device_ua_array['engineOpera']) > -1)
-        {
-           if (stripos($this->getUserAgentString(), $this->device_ua_array['mobi']) > -1)
-           {
-              $result = true;
-           }
-        }
-
-       return $result;
-     }
-
-     // ---------------------------------------------------------------------------
-     // Function: detectWapWml
-     // Description: detects whether the device supports WAP or WML.
-     // ---------------------------------------------------------------------------
-     function detectWapWml()
-     {
-       $result = false;
-       if (stripos($this->getAcceptString(), $this->device_ua_array['vndwap']) > -1 ||
-           stripos($this->getAcceptString(), $this->device_ua_array['wml']) > -1)
-       {
-          $result = true;
-       }
-
-       return $result;
-     }
-
-     // ---------------------------------------------------------------------------
-     // Function: detectIsMobile
-     // Description: detect most recent/current mid-tier Feature Phones
-     //              as well as smartphone-class devices.
-     // ---------------------------------------------------------------------------
-     function detectIsMobile()
-     {
-        //Ordered roughly by market share, WAP/XML > Brew > Smartphone.
-        if ($this->detectWapWml() == true)
-           return true;
-        if ($this->detectBrewDevice() == true)
-           return true;
-        if ($this->detectOperaMobile() == true)
-           return true;
-        if (stripos($this->getUserAgentString(), $this->device_ua_array['engineUpBrowser']) > -1)
-           return true;
-        if (stripos($this->getUserAgentString(), $this->device_ua_array['engineOpenWeb']) > -1)
-           return true;
-        if (stripos($this->getUserAgentString(), $this->device_ua_array['deviceMidp']) > -1)
-           return true;
-        if ($this->detectSmartphone() == true)
-           return true;
-        if ($this->detectDangerHiptop() == true)
-           return true;
-
-         if (stripos($this->getUserAgentString(), $this->device_ua_array['devicePda']) > -1)
-           return true;
-         if (stripos($this->getUserAgentString(), $this->device_ua_array['mobile']) > -1)
-           return true;
-
-         //detect older phones from certain manufacturers and operators.
-         if (stripos($this->getUserAgentString(), $this->device_ua_array['uplink']) > -1)
-           return true;
-         if (stripos($this->getUserAgentString(), $this->device_ua_array['manuSonyEricsson']) > -1)
-           return true;
-         if (stripos($this->getUserAgentString(), $this->device_ua_array['manuericsson']) > -1)
-           return true;
-         if (stripos($this->getUserAgentString(), $this->device_ua_array['manuSamsung1']) > -1)
-           return true;
-         if (stripos($this->getUserAgentString(), $this->device_ua_array['svcDocomo']) > -1)
-           return true;
-         if (stripos($this->getUserAgentString(), $this->device_ua_array['svcKddi']) > -1)
-           return true;
-         if (stripos($this->getUserAgentString(), $this->device_ua_array['svcVodafone']) > -1)
-           return true;
-
-        else
-           return false;
-     }
-
-
-    //*****************************
-    // For Mobile Web Site Design
-    //*****************************
-
-
-     //**************************
-     // The quick way to detect for a tier of devices.
-     //   This method detects for devices which can
-     //   display touch-optimised content (e.g. iPhone)
-     function detectTierTouch()
-     {
-        if ($this->detectIphoneFamily() == true)
-           return true;
-        if ($this->detectAndroid() == true)
-           return true;
-        if ($this->detectAndroidWebKit() == true)
-           return true;
-        else
-           return false;
-     }
-
-     //**************************
-     // The quick way to detect for a tier of devices.
-     //   This method detects for all smartphones, but
-     //   excludes iPhones and iPod Touches.
-     function detectTierSmartphones()
-     {
-        if ($this->detectSmartphone() == true)
-        {
-          if ($this->detectTierTouch() == true)
-          {
-             return false;
-          }
-          else
-             return true;
-        }
-        else
-           return false;
-     }
-
-     //**************************
-     // The quick way to detect for a tier of devices.
-     //   This method detects for all other types of phones,
-     //   but excludes the iPhone and Smartphone Tier devices.
-     function detectTierOtherPhones()
-     {
-        if ($this->detectIsMobile() == true)
-        {
-          if ($this->detectTierTouch() == true)
-          {
-             return false;
-          }
-          if ($this->detectTierSmartphones() == true)
-          {
-             return false;
-          }
-          else
-             return true;
-        }
-        else
-           return false;
+       return $the_content;
      }
   } // MobileSmart
 }
@@ -1141,16 +868,23 @@ if (isset($mobile_smart))
   // Activation
   register_activation_hook(__FILE__, array(&$mobile_smart, 'initialisePlugin'));
 
-  // Actions
-  add_action('admin_menu', MobileSmart_ap);
-  add_action('setup_theme', array($mobile_smart, 'action_handleSwitcherLink'));
-  add_action('wp_footer', array($mobile_smart, 'action_addSwitcherLinkInFooter'));
+  // Switcher {
+    // Actions
+    add_action('admin_menu', MobileSmart_ap);
+    add_action('setup_theme', array($mobile_smart, 'action_handleSwitcherLink'));
+    add_action('wp_footer', array($mobile_smart, 'action_addSwitcherLinkInFooter'));
 
-  // Filters
-  add_filter('body_class', array(&$mobile_smart, 'filter_addBodyClasses'));
-  add_filter('template', array(&$mobile_smart, 'filter_switchTheme'));
-  add_filter('option_template', array(&$mobile_smart, 'filter_switchTheme'));
-  add_filter('option_stylesheet', array(&$mobile_smart, 'filter_switchTheme'));
+    // Filters
+    add_filter('body_class', array(&$mobile_smart, 'filter_addBodyClasses'));
+    add_filter('template', array(&$mobile_smart, 'filter_switchTheme'));
+    add_filter('option_template', array(&$mobile_smart, 'filter_switchTheme'));
+    add_filter('option_stylesheet', array(&$mobile_smart, 'filter_switchTheme'));
+ // } End Switcher
+
+  // Content transformation {
+    // Filters
+    add_filter('the_content', array(&$mobile_smart, 'filter_processContent'));
+  // } End Content transformation
 }
 
 // -------------------------------------------------------------------------
