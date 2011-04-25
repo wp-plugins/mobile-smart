@@ -7,7 +7,8 @@ Tested up to: 3.1
 Stable tag: trunk
 
 The Mobile Smart plugin allows your Wordpress site to switch your theme if a user visits it using a mobile device,
-plus adds template tags to help you customise your theme based on the device viewing it.
+plus adds template tags to help you customise your theme based on the device viewing it. Also contains a sample mobile theme
+for developers to start with, based on Mobile Boilerplate and HTML 5 Reset.
 
 == Description ==
 
@@ -29,11 +30,18 @@ A number of devices have now been added to this plugin. Recently added devices, 
 * Other Blackberry devices (e.g. Blackberry Touch)
 * Gaming devices with browsers (Sony Playstation, XBox, Nintendo devices)
 
-
 There are also two new tiers:
 
 * Tablet (MOBILE_DEVICE_TIER_TABLET) - for tablets (currently iPad, Android, Blackberry)
 * Rich CSS (MOBILE_DEVICE_TIER_RICH_CSS) - for devices that are capable for viewing content with CSS optimised for the iPhone, but may not necessarily support Javascript
+
+= Mobile Theme =
+Mobile Smart comes with a basic barebones ('boilerplate') theme that can be used by theme developers to develop for mobile devices.
+
+The Mobile Smart boilerplate theme is based on two projects: http://html5boilerplate.com/mobile/ and http://html5reset.org/#wordpress
+with some additional Mobile Smart modifications.
+
+Note: The theme is not designed to be used without developer modification.
 
 == Installation ==
 
@@ -44,6 +52,11 @@ This section describes how to install the plugin and get it working.
 1. Go to Settings->Mobile Smart and choose your theme to display when a mobile device encounters your page.
 
 See the Frequently Asked Questions for guidance on how to use the plugin.
+
+If you wish to use the built in sample boilerplate (i.e. barebones) theme as a starting place:
+1. Copy the `plugins/mobile-smart/mobile-smart-theme/` folder to the `wp-content/themes/` directory
+1. Select the theme in Settings->Mobile Smart
+1. Make appropriate modifications to the theme
 
 == Frequently Asked Questions ==
 
@@ -161,6 +174,9 @@ Added Manual Mobile Switcher - widget, link, and template tag.
 = 1.0 =
 Based detector on Mobile ESP project, meaning device detection will stay up to date with latest mobile devices
 
+= 1.1 =
+Includes sample mobile theme - based on Mobile Boilerplate and HTML 5 Reset projects
+
 == Upgrade Notice ==
 
 = 0.1 =
@@ -169,3 +185,5 @@ Initial release.
 = 0.2 =
 
 = 1.0 =
+
+= 1.1 =
