@@ -2,7 +2,7 @@
 /*
 Plugin Name: Mobile Smart
 Plugin URI: http://www.dansmart.co.uk
-Version: v1.1
+Version: v1.1.1
 Author: <a href="http://www.dansmart.co.uk/">Dan Smart</a>
 Description: Mobile Smart contains helper tools for mobile devices, including allowing
              determination of mobile device type or tier in CSS and PHP code, using
@@ -494,7 +494,7 @@ if (!class_exists("MobileSmart"))
         {
           $this->device_tier = MOBILE_DEVICE_TIER_TABLET;
         }
-        if ($this->DetectTierTouch())
+        if ($this->DetectTierIphone())
         {
           $this->device_tier = MOBILE_DEVICE_TIER_TOUCH;
         }
@@ -502,7 +502,7 @@ if (!class_exists("MobileSmart"))
         {
           $this->device_tier = MOBILE_DEVICE_TIER_RICH_CSS;
         }
-        if ($this->DetectTierSmartphones())
+        if ($this->DetectTierRichCss())
         {
           $this->device_tier = MOBILE_DEVICE_TIER_SMARTPHONE;
         }

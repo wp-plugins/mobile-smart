@@ -177,6 +177,9 @@ Based detector on Mobile ESP project, meaning device detection will stay up to d
 = 1.1 =
 Includes sample mobile theme - based on Mobile Boilerplate and HTML 5 Reset projects
 
+= 1.1.1 =
+Bug fix where plugin was calling non existent DetectTierTouch() function.
+
 == Upgrade Notice ==
 
 = 0.1 =
