@@ -180,6 +180,9 @@ Includes sample mobile theme - based on Mobile Boilerplate and HTML 5 Reset proj
 = 1.1.1 =
 Bug fix where plugin was calling non existent DetectTierTouch() function.
 
+= 1.2 =
+Added support for child themes
+
 == Upgrade Notice ==
 
 = 0.1 =
@@ -190,3 +193,6 @@ Initial release.
 = 1.0 =
 
 = 1.1 =
+
+= 1.2 =
+If you're switching to a child theme, you will need to save your Mobile Smart settings before use.

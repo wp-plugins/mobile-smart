@@ -2,7 +2,7 @@
 /*
 Plugin Name: Mobile Smart
 Plugin URI: http://www.dansmart.co.uk
-Version: v1.1.1
+Version: v1.2
 Author: <a href="http://www.dansmart.co.uk/">Dan Smart</a>
 Description: Mobile Smart contains helper tools for mobile devices, including allowing
              determination of mobile device type or tier in CSS and PHP code, using
@@ -190,6 +190,12 @@ if (!class_exists("MobileSmart"))
     function displayAdminOptions()
     {
       $options = $this->getAdminOptions();
+      
+      $themes = get_themes();
+      
+      /*echo '<pre>';
+      print_r($themes);
+      echo '</pre>';*/
 
       if (isset($_POST['submit']))
       {
@@ -299,9 +305,15 @@ if (!class_exists("MobileSmart"))
         // Get choice of mobile theme
         if ($options['mobile_theme'] != $_POST['theme'])
         {
-          $options['mobile_theme'] = $_POST['theme'];
+          $theme_name = $_POST['theme'];
+          
+          if (array_key_exists($theme_name, $themes))
+          {
+            $options['mobile_theme'] = $themes[$theme_name]['Template'];
+            $options['mobile_theme_stylesheet'] = $themes[$theme_name]['Stylesheet'];
 
-          $status_messages[] = array('updated', __('Mobile theme updated to: ', MOBILESMART_DOMAIN) . $_POST['theme']);
+            $status_messages[] = array('updated', __('Mobile theme updated to: ', MOBILESMART_DOMAIN) . $_POST['theme']);
+          }
         }
 
         // output status messages
@@ -333,11 +345,10 @@ if (!class_exists("MobileSmart"))
           <p>Choose the mobile theme that will be displayed when a mobile device is detected.</p>
             <label for="theme">Mobile theme: <select id="theme" name="theme">
                 <?php
-                  $themes = get_themes();
-                  foreach ($themes as $theme)
+                  foreach ($themes as $theme_name => $theme)
                   {
                     ?>
-                    <option value="<?php echo $theme['Template']; ?>" <?php if ($theme['Template'] == $options['mobile_theme']) { echo "selected"; } ?>><?php echo $theme['Template']; ?></option>
+                    <option value="<?php echo $theme_name; ?>" <?php if ($theme['Template'] == $options['mobile_theme']) { echo "selected"; } ?>><?php echo $theme['Name']; ?></option>
                     <?php
                   }
                 ?>
@@ -566,6 +577,29 @@ if (!class_exists("MobileSmart"))
         else
         {
           //echo "Don't switch theme<br/><br/>";
+        }
+      }
+
+      return $theme;
+    }
+    
+    // ---------------------------------------------------------------------------
+    // Function: filter_switchTheme_stylesheet
+    // Description: switches the theme if it's a mobile device to the specified theme - stylesheet - for child themes
+    // - Filter: see add_filter('template'...)
+    // ---------------------------------------------------------------------------
+    function filter_switchTheme_stylesheet($theme)
+    {
+      // get options
+      $options = $this->getAdminOptions();
+
+      // if theme switching enabled
+      if ($options['enable_theme_switching'] == true)
+      {
+        // if is a mobile device or is mobile due to cookie switching
+        if ($this->switcher_isMobile())
+        {
+          $theme = $options['mobile_theme_stylesheet'];
         }
       }
 
@@ -877,8 +911,7 @@ if (isset($mobile_smart))
     // Filters
     add_filter('body_class', array(&$mobile_smart, 'filter_addBodyClasses'));
     add_filter('template', array(&$mobile_smart, 'filter_switchTheme'));
-    add_filter('option_template', array(&$mobile_smart, 'filter_switchTheme'));
-    add_filter('option_stylesheet', array(&$mobile_smart, 'filter_switchTheme'));
+    add_filter('stylesheet', array(&$mobile_smart, 'filter_switchTheme_stylesheet'));
  // } End Switcher
 
   // Content transformation {
