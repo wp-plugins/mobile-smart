@@ -3,7 +3,7 @@ Contributors: dolby_uk
 Donate link: http://www.dansmart.co.uk/
 Tags: iphone, mobile, theme switcher, mobile theme, mobile device, series 60, ipad, blackberry, android
 Requires at least: 2.7
-Tested up to: 3.1
+Tested up to: 3.2
 Stable tag: trunk
 
 The Mobile Smart plugin allows your Wordpress site to switch your theme if a user visits it using a mobile device,
@@ -183,6 +183,9 @@ Bug fix where plugin was calling non existent DetectTierTouch() function.
 = 1.2 =
 Added support for child themes
 
+= 1.2.1 =
+Vital Security patch (timthumb.php). Please upgrade immediately.
+
 == Upgrade Notice ==
 
 = 0.1 =
@@ -196,3 +199,6 @@ Initial release.
 
 = 1.2 =
 If you're switching to a child theme, you will need to save your Mobile Smart settings before use.
+
+= 1.2.1 =
+Security patch to timthumb.php
