@@ -12,7 +12,7 @@ for developers to start with, based on Mobile Boilerplate and HTML 5 Reset.
 
 == Description ==
 
-Mobile Smart, using detection from the MobileESP project (http://www.mobileesp.com) allows the following:
+Mobile Smart (http://www.mobile-smart.co.uk/), using detection from the MobileESP project (http://www.mobileesp.com) allows the following:
 
 * Switch your theme to a mobile-ready theme if a mobile device is detected (you can now enable/disable iPad/tablets)
 * Manual Switcher - to allow your user to manually switch between desktop and mobile versions. Available in 3 versions: widget, option to automatically insert into footer, or template tag.
@@ -20,7 +20,7 @@ Mobile Smart, using detection from the MobileESP project (http://www.mobileesp.c
 * Adds device and tier specific CSS selectors to the body_class, to allow conditional CSS (e.g. so in the same way you have ".single" that you can target ".iphone" or ".mobile-tier-touch".)
 * Image transcoding - rescale images to fit their device
 
-Check out the Mobile Smart Pro http://www.mobile-smart.co.uk for support for:
+Check out the Mobile Smart Pro plugin http://www.mobile-smart.co.uk for support for:
 * Domain switching - use a mobile theme to detect mobile devices, and redirect to appropriate theme URL (e.g. m.yoursite.com)
 * Mobile Pages - mobile versions of posts and pages with the same URL
 * Mobile Menus - mobile versions of menus for mobile-specific navigation
