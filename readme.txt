@@ -1,9 +1,9 @@
 === Plugin Name ===
 Contributors: dolby_uk
-Donate link: http://www.dansmart.co.uk/
+Donate link: http://www.mobile-smart.co.uk/
 Tags: iphone, mobile, theme switcher, mobile theme, mobile device, series 60, ipad, blackberry, android
-Requires at least: 2.7
-Tested up to: 3.2
+Requires at least: 3.1
+Tested up to: 3.3
 Stable tag: trunk
 
 The Mobile Smart plugin allows your Wordpress site to switch your theme if a user visits it using a mobile device,
@@ -14,26 +14,21 @@ for developers to start with, based on Mobile Boilerplate and HTML 5 Reset.
 
 Mobile Smart, using detection from the MobileESP project (http://www.mobileesp.com) allows the following:
 
-* Switch your theme to a mobile-ready theme if a mobile device is detected
+* Switch your theme to a mobile-ready theme if a mobile device is detected (you can now enable/disable iPad/tablets)
 * Manual Switcher - to allow your user to manually switch between desktop and mobile versions. Available in 3 versions: widget, option to automatically insert into footer, or template tag.
 * Template functions to help determine which tier of mobile device (touch/smartphone/other) is viewing your site, to allow conditional content inclusion.
 * Adds device and tier specific CSS selectors to the body_class, to allow conditional CSS (e.g. so in the same way you have ".single" that you can target ".iphone" or ".mobile-tier-touch".)
+* Image transcoding - rescale images to fit their device
+
+Check out the Mobile Smart Pro http://www.mobile-smart.co.uk for support for:
+* Domain switching - use a mobile theme to detect mobile devices, and redirect to appropriate theme URL (e.g. m.yoursite.com)
+* Mobile Pages - mobile versions of posts and pages with the same URL
+* Mobile Menus - mobile versions of menus for mobile-specific navigation
 
 See the Frequently Asked Questions for guidance on how to use the plugin.
 
-A number of devices have now been added to this plugin. Recently added devices, via MobileESP project include:
+Device support includes iPhone, iPad, Android, Blackberry, Windows Phone 6 & 7, Symbian, and many more.
 
-* IPad
-* Blackberry Tablet
-* Android Tablet
-* Windows Phone 7
-* Other Blackberry devices (e.g. Blackberry Touch)
-* Gaming devices with browsers (Sony Playstation, XBox, Nintendo devices)
-
-There are also two new tiers:
-
-* Tablet (MOBILE_DEVICE_TIER_TABLET) - for tablets (currently iPad, Android, Blackberry)
-* Rich CSS (MOBILE_DEVICE_TIER_RICH_CSS) - for devices that are capable for viewing content with CSS optimised for the iPhone, but may not necessarily support Javascript
 
 = Mobile Theme =
 Mobile Smart comes with a basic barebones ('boilerplate') theme that can be used by theme developers to develop for mobile devices.
@@ -66,6 +61,24 @@ It would be advisable not to use other mobile theme switching functionality with
 
 This has been tested with the Wordpress Mobile Pack transcoder and is noted to be compatible, though the list of mobile devices are different between the two.
 
+= How to switch and style for Tablets =
+
+Go to the Mobile Theme tab in the Settings->Mobile Smart admin page, and enable / disable tablet support.
+
+If you wish to serve up different styles for tablets, you'll have to modify your template to use the template tags to detect:
+
+`<?php
+/* add additional stylesheet for certain mobile types */
+global $mobile_smart;
+// add stylesheets dependent on header
+if ($mobile_smart->isTierTablet())
+{
+  wp_enqueue_style('mobile-tablet', get_bloginfo('stylesheet_directory')."/css/tablet.css");
+}
+?>`
+
+You can use the same template tag (isTierTablet()) to display additional content (such as sidebars, etc).
+
 = How do I use the Manual Switcher? =
 
 You have the option of the following:
@@ -88,7 +101,7 @@ The Manual Switcher displays the switcher link in a div with an id of *mobilesma
 
 = Do you do domain switching =
 
-Not currently, though that is on the roadmap.
+Go to http://www.mobile-smart.co.uk/ for more information on the Mobile Smart Pro plugin.
 
 = How do I enable unique handset body classes =
 
@@ -127,7 +140,7 @@ Use the following PHP code:
 /* add additional stylesheet for certain mobile types */
 global $mobile_smart;
 // add stylesheets dependent on header
-if ($mobile_smart->isTierTouch() == MOBILE_DEVICE_TIER_TOUCH)
+if ($mobile_smart->isTierTouch())
 {
   wp_enqueue_style('mobile-touch', get_bloginfo('stylesheet_directory')."/css/touch.css");
 }
@@ -153,15 +166,9 @@ Please email me with details of the device that is not yet supported by Mobile S
 
 = Where can I get a mobile theme from? =
 
-Try the Wordpress Mobile Pack for a good example of a theme that is compatible with XHTML-MP.
+Try the Mobile Smart boilerplat theme if you're a developer. Also check out the Wordpress Mobile Pack
+for a good example of a theme that is compatible with XHTML-MP.
 
-I will be developing a sample mobile theme next, that will help get going quickly without installing two plugins.
-
-= What's on the roadmap? =
-
-- Admin interface to allow adding of user agents
-- Domain switching of themes
-- PHP and Javascript helper functions
 
 == Changelog ==
 
@@ -186,6 +193,13 @@ Added support for child themes
 = 1.2.1 =
 Vital Security patch (timthumb.php). Please upgrade immediately.
 
+= 1.3 =
+Major upgrade:
+- Upgrade of MobileESP detection engine - better support for Opera Mini on Android (see http://blog.mobileesp.com/ for latest updates)
+- Admin upgrade to tabs
+- You can now select to switch for Ipad/tablet or not
+- Debugged image transcoding
+
 == Upgrade Notice ==
 
 = 0.1 =
@@ -202,3 +216,6 @@ If you're switching to a child theme, you will need to save your Mobile Smart se
 
 = 1.2.1 =
 Security patch to timthumb.php
+
+= 1.3 
+Improved admin, enable/disable iPad/tablet switching, updated MobileESP device detection engine

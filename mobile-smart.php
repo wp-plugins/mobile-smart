@@ -1,10 +1,10 @@
 <?php
 /*
 Plugin Name: Mobile Smart
-Plugin URI: http://www.dansmart.co.uk
-Version: v1.2.1
+Plugin URI: http://www.dansmart.co.uk/downloads/
+Version: v1.3
 Author: <a href="http://www.dansmart.co.uk/">Dan Smart</a>
-Description: Mobile Smart contains helper tools for mobile devices, including allowing
+Description: Mobile Smart contains helper tools for mobile devices +  switching mobile themes. <a href="/wp-admin/options-general.php?page=mobile-smart.php">Settings</a>
              determination of mobile device type or tier in CSS and PHP code, using
              detection by Mobile ESP project.
  */
@@ -71,13 +71,15 @@ define ('MOBILESMART_SWITCHER_MOBILE_STR', 'mobile');
 define ('MOBILESMART_SWITCHER_DESKTOP_STR', 'desktop');
 define ('MOBILESMART_SWITCHER_COOKIE', 'mobile-smart-switcher');
 define ('MOBILESMART_SWITCHER_COOKIE_EXPIRE', 3600); // 3600
+define ('MOBILESMART_SWITCHER_DOMAIN_SWITCH', 'domain_switch');
+define ('MOBILESMART_SWITCHER_DOMAIN_SWITCH_DOMAIN', 'mobile_domain');
 
 
 // SOME DUMMY TIER SCREEN DIMENSIONS FOR TRANSCODING IMAGES
 define ('MOBILE_DEVICE_TIER_TOUCH_MAX_WIDTH', 300);
 define ('MOBILE_DEVICE_TIER_TOUCH_MAX_HEIGHT', 400);
-define ('MOBILE_DEVICE_TIER_TABLET_MAX_WIDTH', 300);
-define ('MOBILE_DEVICE_TIER_TABLET_MAX_HEIGHT', 400);
+define ('MOBILE_DEVICE_TIER_TABLET_MAX_WIDTH', 1024);
+define ('MOBILE_DEVICE_TIER_TABLET_MAX_HEIGHT', 768);
 define ('MOBILE_DEVICE_TIER_RICH_CSS_MAX_WIDTH', 300);
 define ('MOBILE_DEVICE_TIER_RICH_CSS_MAX_HEIGHT', 400);
 define ('MOBILE_DEVICE_TIER_SMARTPHONE_MAX_WIDTH', 200);
@@ -109,6 +111,10 @@ if (!class_exists("MobileSmart"))
     var $deviceTier = ''; // current device tier
 
     var $switcher_cookie = null;
+    
+    var $detectmobile = false;
+    var $detect_from_domain = false;
+    var $detect_from_cookie = false;
 
     // -------------------------------------------------------------------------
     // Methods
@@ -182,6 +188,67 @@ if (!class_exists("MobileSmart"))
 
       return $this->admin_options;
     }
+    
+    
+    /**
+     * Set meta data option from a checkbox in the admin
+     * @param array $options
+     * @param type $meta_key
+     * @param type $label
+     * @return array status message array
+     */
+    private function adminSetOptionFromCheckbox(&$options, $meta_key, $label)
+    {
+      $status_message = array();
+      if (isset($_POST[$meta_key]))
+      {
+        // enable theme switching
+        if ($options[$meta_key] != true)
+        {
+          $options[$meta_key] = true;
+
+          $status_message = array('updated', $label.' : '.__('enabled', MOBILESMART_DOMAIN));
+        }
+      }
+      else
+      {
+        // disable theme switching
+        if ($options[$meta_key] != false)
+        {
+          $options[$meta_key] = false;
+
+          $status_message = array('updated', $label.' : '.__('disabled', MOBILESMART_DOMAIN));
+        }
+      }
+
+      return $status_message;
+    }
+    
+    /**
+     * Set meta data option from a checkbox in the admin
+     * @param array $options
+     * @param type $meta_key
+     * @param type $label
+     * @return array status message array
+     */
+    private function adminSetOptionFromTextboxURL(&$options, $meta_key, $label)
+    {
+      $status_message = array();
+      if (isset($_POST[$meta_key]))
+      {
+        $options[$meta_key] = filter_var($_POST[$meta_key], FILTER_SANITIZE_URL);
+
+        $status_message = array('updated', $label.' : '.__('saved', MOBILESMART_DOMAIN));
+      }
+      else
+      {
+        $options[$meta_key] = '';
+
+        $status_message = array('updated', $label.' : '.__('saved', MOBILESMART_DOMAIN));
+      }
+
+      return $status_message;
+    }
 
     // -------------------------------------------------------------------------
     // Method: displayAdminOptions
@@ -193,127 +260,63 @@ if (!class_exists("MobileSmart"))
       
       $themes = get_themes();
       
+      $current_tab = (isset($_GET['tab']) ? $_GET['tab'] : 1);
+      
       /*echo '<pre>';
-      print_r($themes);
+      print_r($_POST);
       echo '</pre>';*/
 
       if (isset($_POST['submit']))
       {
         $status_messages = array();
-        // Enable / Disable theme switching
-        if (isset($_POST['enable_theme_switching']))
-        {
-          // enable theme switching
-          if ($options['enable_theme_switching'] != true)
-          {
-            $options['enable_theme_switching'] = true;
-
-            $status_messages[] = array('updated', __('Theme switching enabled.', MOBILESMART_DOMAIN));
-          }
-        }
-        else
-        {
-          // disable theme switching
-          if ($options['enable_theme_switching'] != false)
-          {
-            $options['enable_theme_switching'] = false;
-
-            $status_messages[] = array('updated', __('Theme switching disabled.', MOBILESMART_DOMAIN));
-          }
-        }
-
-        // Enable / Disable manual switching
-        if (isset($_POST['enable_manual_switch']))
-        {
-          if ($options['enable_manual_switch'] != true)
-          {
-            $options['enable_manual_switch'] = true;
-
-            $status_messages[] = array('updated', __('Manual theme switching enabled.', MOBILESMART_DOMAIN));
-          }
-        }
-        else
-        {
-          if ($options['enable_manual_switch'] != false)
-          {
-            $options['enable_manual_switch'] = false;
-
-            $status_messages[] = array('updated', __('Manual theme switching disabled.', MOBILESMART_DOMAIN));
-          }
-        }
-
-        // Enable / Disable footer manual switching
-        if (isset($_POST['enable_manual_switch_in_footer']))
-        {
-          if ($options['enable_manual_switch_in_footer'] != true)
-          {
-            $options['enable_manual_switch_in_footer'] = true;
-
-            $status_messages[] = array('updated', __('Manual theme switching in footer enabled.', MOBILESMART_DOMAIN));
-          }
-        }
-        else
-        {
-          if ($options['enable_manual_switch_in_footer'] != false)
-          {
-            $options['enable_manual_switch_in_footer'] = false;
-
-            $status_messages[] = array('updated', __('Manual theme switching in footer disabled.', MOBILESMART_DOMAIN));
-          }
-        }
-
-        // Enable / Disable desktop manual switching
-        if (isset($_POST['allow_desktop_switcher']))
-        {
-          if ($options['allow_desktop_switcher'] != true)
-          {
-            $options['allow_desktop_switcher'] = true;
-
-            $status_messages[] = array('updated', __('Manual theme switching on desktop enabled.', MOBILESMART_DOMAIN));
-          }
-        }
-        else
-        {
-          if ($options['allow_desktop_switcher'] != false)
-          {
-            $options['allow_desktop_switcher'] = false;
-
-            $status_messages[] = array('updated', __('Manual theme switching on desktop disabled.', MOBILESMART_DOMAIN));
-          }
-        }
         
-        // Enable / Disable image transcoding
-        if (isset($_POST['enable_image_transcoding']))
+        switch ($current_tab)
         {
-          if ($options['enable_image_transcoding'] != true)
-          {
-            $options['enable_image_transcoding'] = true;
+          case 1:
+            // Enable / Disable theme switching
+            $status_messages[] = $this->adminSetOptionFromCheckbox($options, 'enable_theme_switching', __('Theme switching', MOBILESMART_DOMAIN));
+            
+            // Get choice of mobile theme
+            if ($options['mobile_theme'] != $_POST['theme'])
+            {
+              $theme_name = $_POST['theme'];
 
-            $status_messages[] = array('updated', __('Image transcoding enabled.', MOBILESMART_DOMAIN));
-          }
-        }
-        else
-        {
-          if ($options['enable_image_transcoding'] != false)
-          {
-            $options['enable_image_transcoding'] = false;
+              if (array_key_exists($theme_name, $themes))
+              {
+                $options['mobile_theme'] = $themes[$theme_name]['Template'];
+                $options['mobile_theme_stylesheet'] = $themes[$theme_name]['Stylesheet'];
 
-            $status_messages[] = array('updated', __('Image transcoding disabled.', MOBILESMART_DOMAIN));
-          }
-        }
+                $status_messages[] = array('updated', __('Mobile theme updated to: ', MOBILESMART_DOMAIN) . $_POST['theme']);
+              }
+            }
+            
+            // Enable / Disable switching for tablets
+            $status_messages[] = $this->adminSetOptionFromCheckbox($options, 'switch_for_tablets', __('Switching for Tablets', MOBILESMART_DOMAIN));
+            break;
+          case 2:
+            // Enable / Disable domain switching
+            $status_messages[] = $this->adminSetOptionFromCheckbox($options, 'enable_domain_switching', __('Domain Switching', MOBILESMART_DOMAIN));
+            
+            // Save Domain Switching URL
+            $status_messages[] = $this->adminSetOptionFromTextboxURL($options, 'mobile_domain', __('Mobile Domain', MOBILESMART_DOMAIN));
+            break;
+          case 3:
+            // Enable / Disable manual switching
+            $status_messages[] = $this->adminSetOptionFromCheckbox($options, 'enable_manual_switch', __('Manual theme switching', MOBILESMART_DOMAIN));
+            
+            // Enable / Disable footer manual switching
+            $status_messages[] = $this->adminSetOptionFromCheckbox($options, 'enable_manual_switch_in_footer', __('Manual theme switching in footer', MOBILESMART_DOMAIN));
 
-        // Get choice of mobile theme
-        if ($options['mobile_theme'] != $_POST['theme'])
-        {
-          $theme_name = $_POST['theme'];
-          
-          if (array_key_exists($theme_name, $themes))
-          {
-            $options['mobile_theme'] = $themes[$theme_name]['Template'];
-            $options['mobile_theme_stylesheet'] = $themes[$theme_name]['Stylesheet'];
-
-            $status_messages[] = array('updated', __('Mobile theme updated to: ', MOBILESMART_DOMAIN) . $_POST['theme']);
-          }
+            // Enable / Disable desktop manual switching
+            $status_messages[] = $this->adminSetOptionFromCheckbox($options, 'allow_desktop_switcher', __('Manual theme switching on desktop', MOBILESMART_DOMAIN));
+            break;
+          case 4:
+            // Enable / Disable image transcoding
+            $status_messages[] = $this->adminSetOptionFromCheckbox($options, 'enable_image_transcoding', __('Image transcoding', MOBILESMART_DOMAIN));
+            break;
+          case 5:
+            // Enable / Disable mobile pages
+            $status_messages[] = $this->adminSetOptionFromCheckbox($options, 'enable_mobile_pages', __('Mobile Pages', MOBILESMART_DOMAIN));
         }
 
         // output status messages
@@ -334,63 +337,236 @@ if (!class_exists("MobileSmart"))
 
       // Display the admin page
       ?>
-      <div class="wrap">
-        <form method="post" action="<?php echo $_SERVER["REQUEST_URI"]; ?>">
-          <h2>Mobile Smart</h2>
-          <h3>Mobile Theme</h3>
-          <p>Enable switching via user agent detection:</p>
-          <label for="enable_theme_switching">Enable <input type="checkbox" name="enable_theme_switching" id="enable_theme_switching" <?php if ($options['enable_theme_switching']) { echo "checked"; } ?>/>
-          </label>
-          <h3>Mobile theme</h3>
-          <p>Choose the mobile theme that will be displayed when a mobile device is detected.</p>
-            <label for="theme">Mobile theme: <select id="theme" name="theme">
-                <?php
-                  foreach ($themes as $theme_name => $theme)
-                  {
-                    ?>
-                    <option value="<?php echo $theme_name; ?>" <?php if ($theme['Template'] == $options['mobile_theme']) { echo "selected"; } ?>><?php echo $theme['Name']; ?></option>
-                    <?php
-                  }
-                ?>
-              </select></label>
-
-          <hr/>
-          <h3>Manual Switching</h3>
-          <h4>Enable Manual Switcher</h4>
-          <p>You can add a link to your pages which will allow the user to manually select the version
-           (desktop or mobile) that they want. Once you enable Manual Switching, you can use either the
-           footer link or the Mobile Smart Manual Switcher widget.</p>
-          <label for="enable_manual_switch">Enable Manual Switcher <input type="checkbox" name="enable_manual_switch" id="enable_manual_switch" <?php if ($options['enable_manual_switch']) { echo "checked"; } ?>/>
-          </label><br/>
-
-          <h4>Enable a Manual Switcher link in the footer</h4>
-          <p><em>Manual switching (above) must be enabled for this to work properly.</em></p>
-          <label for="enable_manual_switch_in_footer">Enable Manual Switcher in footer <input type="checkbox" name="enable_manual_switch_in_footer" id="enable_manual_switch_in_footer" <?php if ($options['enable_manual_switch_in_footer']) { echo "checked"; } ?>/>
-          </label><br/>
-
-          <h4>Allow manual switching on desktop</h4>
-          <p>This is most useful for debugging your themes. You probably
-          do not want to allow your users to switch to the mobile version whilst viewing on a desktop in other cases.</p>
-          <p><em>Manual switching (above) must be enabled for this to work properly.</em></p>
-          <label for="allow_desktop_switcher">Enable Manual Switcher Link whilst on Desktop <input type="checkbox" name="allow_desktop_switcher" id="allow_desktop_switcher" <?php if ($options['allow_desktop_switcher']) { echo "checked"; } ?>/>
-          </label>
+      <script type="text/javascript">
+      </script>
+      <div class="wrap clearfix">
+        <style type="text/css" media="all">
           
-          <hr/>
-          <h3>Transcoding</h3>
-          <h4>In development: Enable image transcoding</h4>
-          <p>Do not enable this unless you want to try the TimThumb powered image transcoding.</p>
-          <p><em>Manual switching (above) must be enabled for this to work properly.</em></p>
-          <label for="enable_image_transcoding">Enable image transcoding <input type="checkbox" name="enable_image_transcoding" id="enable_image_transcoding" <?php if ($options['enable_image_transcoding']) { echo "checked"; } ?>/>
-          </label>
+          #mobilesmart_infobox {
+            border: 1px solid #999;
+            padding: 10px; margin: 10px;
+            background-color: #efefef;
+            float: right;
+            width: 200px;
+          }
+          
+          #mobilesmart_infobox .subsection {
+            border: 1px solid #cdcdcd;
+            padding: 10px; margin: 10px 0;
+          }
+        </style>
+          <h2>Mobile Smart</h2>
+          <div id="mobilesmart_infobox">
+            <div class="subsection clearfix">
+              <h3>Mobile Smart Pro</h3>
+              <p>The ultimate mobile plugin for WordPress:</p>
+              <ul>
+                <li><strong>Domain Switching</strong> - redirect to a mobile domain (e.g. m.domain.com)</li>
+                <li><strong>Mobile Pages</strong> - mobile specific content direct from your posts &amp; pages</li>
+                <li><strong>Mobile Menus</strong> - mobile versions of your menus</li>
+                <li><strong>Device Detection</strong> - mobileESP or DeviceAtlas support</li>
+              </ul>
+              <a href="http://www.mobile-smart.co.uk/">Find out more</a>
+            </div>
+            <div class="subsection clearfix">
+              <h3>Mobile Smart Newsletter</h3>
+              <!-- Begin MailChimp Signup Form -->
+              <div id="mc_embed_signup">
+              <form action="http://dansmart.us2.list-manage.com/subscribe/post?u=d2059b426acf8c7232bd417a2&amp;id=eddd2b41ad" method="post" id="mc-embedded-subscribe-form" name="mc-embedded-subscribe-form" class="validate" target="_blank">
+                  <p><label for="mce-EMAIL">Sign up for Mobile Smart updates, plus articles on developing websites for mobile devices and WordPress. </label>
+                  <input type="email" value="" name="EMAIL" class="email" id="mce-EMAIL" placeholder="email address" required/></p>
+                  <div class="clear"><input type="submit" value="Subscribe" name="subscribe" id="mc-embedded-subscribe" class="button"></div>
+              </form>
+              </div>
 
-          <hr/>
-          <h3>Mobile Device User Agents</h3>
-          <p>Add user agents:          <span style="color: red">Coming soon...</span></p>
-          <div class="submit">
-            <input type="submit" name="submit" value="<?php _e('Update Settings', 'MobileSmart'); ?>"/>
+              <!--End mc_embed_signup-->
+            </div>
           </div>
-        </form>
+          <div id="mobilesmart_main_container">
+            <p><em><strong>Mobile theme switching and more</strong></em></p>
+            <p><strong>Tabs overview:</strong><br/><em>Mobile Theme: Set the mobile theme to be displayed when viewed on a mobile device</br>
+                Domain Switching (PRO only): Redirect to a mobile domain (e.g. m.yourdomain.com) when viewed on a mobile device</em><br/>
+                Manual Switching: Add a link in footer (or widget) allowing user to switch between mobile and desktop versions<br/>
+                Transcoding: Resize images to mobile scale<br/>
+                Mobile Pages (PRO only): Mobile versions of normal page content</em>
+            </p>
+            <?php
+              function display_active_tab($tab, $current_tab)
+              { 
+                if ($current_tab == $tab) {
+                  echo 'nav-tab-active';
+                }
+              }
+            ?>
+            <h3 class="nav-tab-wrapper">
+              <a href="<?php echo add_query_arg('tab', 1); ?>" class="nav-tab <?php display_active_tab(1, $current_tab); ?>">Mobile Theme</a>
+              <a href="<?php echo add_query_arg('tab', 2); ?>" class="nav-tab <?php display_active_tab(2, $current_tab); ?>">Domain Switching (PRO)</a>
+              <a href="<?php echo add_query_arg('tab', 3); ?>" class="nav-tab <?php display_active_tab(3, $current_tab); ?>">Manual Switching</a>
+              <a href="<?php echo add_query_arg('tab', 4); ?>" class="nav-tab <?php display_active_tab(4, $current_tab); ?>">Transcoding</a>
+              <a href="<?php echo add_query_arg('tab', 5); ?>" class="nav-tab <?php display_active_tab(5, $current_tab); ?>">Mobile Pages (PRO)</a>
+            </h3>
+            <form method="post" action="<?php echo $_SERVER["REQUEST_URI"]; ?>">
+            <?php
+              switch ($current_tab)
+              {
+                case 1: $this->displayAdminTabMobileTheme($options, $themes); break;
+                case 2: $this->displayAdminTabDomainSwitching($options); break;
+                case 3: $this->displayAdminTabManualSwitching($options); break;
+                case 4: $this->displayAdminTabTranscoding($options); break;
+                case 5: $this->displayAdminTabMobilePages($options); break;
+                default: $this->displayAdminTabMobileTheme($options, $themes); break;
+              }
+            ?>
+
+              <div class="submit">
+                <input type="submit" name="submit" value="<?php _e('Update Settings', 'MobileSmart'); ?>"/>
+              </div>
+            </form>
+          </div>
       </div>
+      <?php
+    }
+    
+    /**
+     * display mobile theme admin tab
+     * @param type $options
+     * @param type $themes 
+     */
+    function displayAdminTabMobileTheme($options, $themes)
+    {
+      ?>
+      <h3>Mobile Theme</h3>
+      
+      <h4>Mobile Switching</h4>
+      <p>Enable switching via user agent detection:</p>
+      <label for="enable_theme_switching">Enable <input type="checkbox" name="enable_theme_switching" id="enable_theme_switching" <?php if ($options['enable_theme_switching']) { echo "checked"; } ?>/></label>
+      
+      <p>Choose the mobile theme that will be displayed when a mobile device is detected.</p>
+        <label for="theme">Mobile theme: <select id="theme" name="theme">
+            <?php
+              foreach ($themes as $theme_name => $theme)
+              {
+                ?>
+                <option value="<?php echo $theme_name; ?>" <?php if ($theme['Template'] == $options['mobile_theme']) { echo "selected"; } ?>><?php echo $theme['Name']; ?></option>
+                <?php
+              }
+            ?>
+          </select></label>
+      
+      <h4>Tablets</h4>
+      <p>
+        <em>Most people choose to show the desktop theme on tablets such as iPads. You may wish to enable your mobile theme and pull
+        in a tablet specific stylesheet and/or other content via the mobile theme.</em></p>
+      <p>
+        <label for="switch_for_tablets">Enable theme switching for tablets (e.g. iPad):  <input type="checkbox" name="switch_for_tablets" id="switch_for_tablets" <?php if ($options['switch_for_tablets']) { echo "checked"; } ?>/></label>
+      </p>
+      <?php
+    }
+    
+    /**
+     * Display domain switching tab
+     * @param type $options 
+     */
+    function displayAdminTabDomainSwitching($options)
+    {
+      ?>
+      <h3>Domain Switching (PRO)</h3>
+      
+      <?php $this->displayProNotice(); ?>
+      
+      <div style="color: #999">
+      <p>If a user arrives at your mobile subdomain, you can automatically switch to the mobile theme by enabling domain switching.</p>
+      <p>If you also have manual switching enabled, manual switching will take priority - so they will be redirected to the desktop version of the site
+         until they switch back.</p>
+      <p>
+        <label for="enable_domain_switching"><strong>Enable domain switching: </strong> <input type="checkbox" disabled="disabled" name="enable_domain_switching" id="enable_domain_switching" <?php if ($options['enable_domain_switching']) { echo "checked"; } ?>/></label>
+      </p>
+      
+      <p>
+        <label for="mobile_domain"><strong>Your mobile domain: </strong> <input type="text" name="mobile_domain" disabled="disabled" value="<?php echo $options['mobile_domain']; ?>"/></label><em> You must enable domain switching and have a subdomain for this to function correctly.</em>
+      </p>
+      <br/>
+      <h4><em>Notes on subdomains and DNS</em></h4>
+      <p><em>To use a mobile subdomain, you'll need to go to your DNS control panel (domain name), and create either an A record or a CNAME record
+         pointing to the same location. An A record would point the to the same IP address, a CNAME record would point to the main domain.</em></p>
+      <p><em>If you're on shared hosting, you may need to get your hosting provider to add your mobile subdomain as a 'parked domain'
+         to your account so that the server points you to your existing account.</em></p>
+      </div>
+      <?php
+    }
+    
+    /**
+     * display Transcoding admin tab
+     * @param type $options 
+     */
+    function displayAdminTabTranscoding($options)
+    {
+      ?>
+      <h3>Transcoding</h3>
+      
+      <h4>In development: Enable image transcoding</h4>
+      
+      <p>Do not enable this unless you want to try the TimThumb powered image transcoding. Make sure you enable your cache folder to 777.</p>
+      <p><em>Manual switching (above) must be enabled for this to work properly.</em></p>
+      <label for="enable_image_transcoding">Enable image transcoding <input type="checkbox" name="enable_image_transcoding" id="enable_image_transcoding" <?php if ($options['enable_image_transcoding']) { echo "checked"; } ?>/>
+      </label>
+      <?php
+    }
+    
+    /**
+     * Display Manual Switching admin tab
+     * @param type $options 
+     */
+    function displayAdminTabManualSwitching($options)
+    {
+      ?>
+      <h3>Manual Switching</h3>
+      
+      <h4>Enable Manual Switcher</h4>
+      <p>You can add a link to your pages which will allow the user to manually select the version
+       (desktop or mobile) that they want. Once you enable Manual Switching, you can use either the
+       footer link or the Mobile Smart Manual Switcher widget.</p>
+      <label for="enable_manual_switch"><strong>Enable Manual Switcher:</strong> <input type="checkbox" name="enable_manual_switch" id="enable_manual_switch" <?php if ($options['enable_manual_switch']) { echo "checked"; } ?>/>
+      </label><br/>
+
+      <h4>Enable a Manual Switcher link in the footer</h4>
+      <p><em>Manual switching (above) must be enabled for this to work properly.</em></p>
+      <label for="enable_manual_switch_in_footer"><strong>Enable Manual Switcher in footer:</strong> <input type="checkbox" name="enable_manual_switch_in_footer" id="enable_manual_switch_in_footer" <?php if ($options['enable_manual_switch_in_footer']) { echo "checked"; } ?>/>
+      </label><br/>
+
+      <h4>Allow manual switching on desktop</h4>
+      <p>This is most useful for debugging your themes. You probably
+      do not want to allow your users to switch to the mobile version whilst viewing on a desktop in other cases.</p>
+      <p><em>Manual switching (above) must be enabled for this to work properly.</em></p>
+      <label for="allow_desktop_switcher"><strong>Enable Manual Switcher Link whilst on Desktop</strong> <input type="checkbox" name="allow_desktop_switcher" id="allow_desktop_switcher" <?php if ($options['allow_desktop_switcher']) { echo "checked"; } ?>/>
+      </label>
+      <?php
+    }
+    
+    /**
+     * Display Mobile Pages admin tab
+     * @param type $options 
+     */
+    function displayAdminTabMobilePages($options)
+    {
+      ?>
+      <h3>Mobile Pages</h3>
+      
+      <?php $this->displayProNotice(); ?>
+      
+      <div style="color: #999">
+      <p>It can be beneficial to have mobile versions of your content, specifically targeted at the smaller mobile pages.</p>
+      <p>
+        <label for="enable_mobile_pages"><strong>Enable Mobile Pages</strong> <input type="checkbox" disabled="disabled" name="enable_mobile_pages" <?php if ($options['enable_mobile_pages']) { echo "checked"; } ?>/></label>
+      </p>
+      </div>
+      <?php
+    }
+    
+    function displayProNotice()
+    {
+      ?>
+      <p>Coming soon: Mobile Smart PRO - sign up to the newsletter to get news of when it will be released.</p>
       <?php
     }
 
@@ -567,16 +743,11 @@ if (!class_exists("MobileSmart"))
 
       // if theme switching enabled
       if ($options['enable_theme_switching'] == true)
-      {
+      { 
         // if is a mobile device or is mobile due to cookie switching
         if ($this->switcher_isMobile())
-        {
+        { 
           $theme = $options['mobile_theme'];
-          //echo "Switch theme: $theme<br/>";
-        }
-        else
-        {
-          //echo "Don't switch theme<br/><br/>";
         }
       }
 
@@ -617,10 +788,24 @@ if (!class_exists("MobileSmart"))
         // get the mobile detect value
         $detectmobile = $this->DetectIsMobile();
 
-        //echo "Detect Mobile: ".($detectmobile ? "true" : "false")."<br/>";
-        //echo "Cookie: ".($this->switcher_cookie ? "true" : "false")." - value: {$this->switcher_cookie}<br/>";
-
         // check the switcher cookie
+        $is_mobile = $this->switcher_getMobileCookieDetect($detectmobile);
+
+        //echo "Is Mobile: ".($is_mobile ? "true" : "false")."<br/><br/>";
+
+        return $is_mobile;
+     }
+     
+     /**
+      * Detect if it's mobile from the cookie - overrides mobile status
+      * @param boolean $detectmobile
+      * @return boolean
+      */
+     function switcher_getMobileCookieDetect($detectmobile)
+     {
+       if (!$this->detect_from_cookie)
+       {
+          // check the switcher cookie
         if ($detectmobile && $this->switcher_cookie)
         {
           if (($this->switcher_cookie == MOBILESMART_SWITCHER_DESKTOP_STR))
@@ -632,7 +817,7 @@ if (!class_exists("MobileSmart"))
             $is_mobile = true;
           }
         }
-        // if we're not a mobile, then we inverse the check string
+        // if we're not a mobile, then we invert the check string
         else if (!$detectmobile)
         {
           if (($this->switcher_cookie == MOBILESMART_SWITCHER_MOBILE_STR))
@@ -648,19 +833,39 @@ if (!class_exists("MobileSmart"))
         {
           $is_mobile = $detectmobile;
         }
+          
+          $this->detect_from_cookie = $is_mobile;
+       }
 
         //echo "Is Mobile: ".($is_mobile ? "true" : "false")."<br/><br/>";
 
-        return $is_mobile;
+        return $this->detect_from_cookie;
      }
      
-     // ---------------------------------------------------------------------------
-     // Function: DetectIsMobile
-     // Description: is it a mobile device (including iPad)
-     // ---------------------------------------------------------------------------
+     /**
+      * is it a mobile device (including iPad)
+      * @return boolean
+      */
      function DetectIsMobile()
      {
-       return ( $this->DetectMobileQuick() || $this->DetectIpad() );
+       if (!$this->detectmobile)
+       {
+         $options = $this->getAdminOptions();
+         $is_mobile =  false;
+
+         if ($options['switch_for_tablets'])
+         {
+           $is_mobile =  $this->DetectMobileQuick() || $this->DetectIpad();
+         }
+         else
+         {
+           $is_mobile = $this->DetectMobileQuick();
+         }
+         
+         $this->detectmobile = $is_mobile;
+       }
+       
+       return $this->detectmobile;
      }
 
      // ---------------------------------------------------------------------------
@@ -708,6 +913,23 @@ if (!class_exists("MobileSmart"))
         {
           // display the link
           $this->addSwitcherLink();
+        }
+     }
+     
+     /**
+      * Run init action
+      */
+     function action_init()
+     {
+        // get options
+        $options = $this->getAdminOptions();
+
+        // if theme switching enabled
+        if ($options['enable_theme_switching'] == true)
+        { 
+          $is_mobile = $this->switcher_isMobile();
+
+          
         }
      }
 
@@ -882,6 +1104,36 @@ if (!class_exists("MobileSmart"))
 
        return $the_content;
      }
+     
+     /**
+      * Add mobile pages post type
+      */
+     function mobilePages_init()
+     {
+       $options = $this->getAdminOptions();
+       
+       if ($options['enable_mobile_pages'])
+       {
+          add_meta_box( 
+             'mobileSmart_mobilePage'
+            ,__( 'Mobile Version', MOBILESMART_DOMAIN )
+            ,array( &$this, 'mobilePages_displayMetaBox' )
+            ,'post' 
+            ,'normal'
+            ,'high'
+          );
+          
+          add_meta_box( 
+             'mobileSmart_mobilePage'
+            ,__( 'Mobile Version', MOBILESMART_DOMAIN )
+            ,array( &$this, 'mobilePages_displayMetaBox' )
+            ,'page' 
+            ,'normal'
+            ,'high'
+          );
+       }
+     }
+     
   } // MobileSmart
 }
 
@@ -907,6 +1159,7 @@ if (isset($mobile_smart))
     add_action('admin_menu', MobileSmart_ap);
     add_action('setup_theme', array($mobile_smart, 'action_handleSwitcherLink'));
     add_action('wp_footer', array($mobile_smart, 'action_addSwitcherLinkInFooter'));
+    add_action('init', array($mobile_smart, 'action_init'));
 
     // Filters
     add_filter('body_class', array(&$mobile_smart, 'filter_addBodyClasses'));
@@ -918,6 +1171,7 @@ if (isset($mobile_smart))
     // Filters
     add_filter('the_content', array(&$mobile_smart, 'filter_processContent'));
   // } End Content transformation
+ 
 }
 
 // -------------------------------------------------------------------------
