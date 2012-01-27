@@ -46,14 +46,11 @@ This section describes how to install the plugin and get it working.
 1. Activate the plugin through the 'Plugins' menu in WordPress
 1. Go to Settings->Mobile Smart and choose your theme to display when a mobile device encounters your page.
 
-See the Frequently Asked Questions for guidance on how to use the plugin.
-
-If you wish to use the built in sample boilerplate (i.e. barebones) theme as a starting place:
-1. Copy the `plugins/mobile-smart/mobile-smart-theme/` folder to the `wp-content/themes/` directory
-1. Select the theme in Settings->Mobile Smart
-1. Make appropriate modifications to the theme
+Go to http://www.mobile-smart.co.uk/installation/ for more details.
 
 == Frequently Asked Questions ==
+
+See http://www.mobile-smart.co.uk/frequently-asked-questions/ for more.
 
 = Does this work with other mobile plugins =
 
