@@ -2,7 +2,7 @@
 /*
 Plugin Name: Mobile Smart
 Plugin URI: http://www.dansmart.co.uk/downloads/
-Version: v1.3
+Version: v1.3.1
 Author: <a href="http://www.dansmart.co.uk/">Dan Smart</a>
 Description: Mobile Smart contains helper tools for mobile devices +  switching mobile themes. <a href="/wp-admin/options-general.php?page=mobile-smart.php">Settings</a>
              determination of mobile device type or tier in CSS and PHP code, using
