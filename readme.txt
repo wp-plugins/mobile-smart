@@ -1,9 +1,9 @@
 === Plugin Name ===
 Contributors: dolby_uk
 Donate link: http://www.mobile-smart.co.uk/
-Tags: iphone, mobile, theme switcher, mobile theme, mobile device, series 60, ipad, blackberry, android
+Tags: iphone, mobile, theme switcher, mobile theme, mobile device, series 60, ipad, blackberry, android, tablet
 Requires at least: 3.1
-Tested up to: 3.3
+Tested up to: 3.7
 Stable tag: trunk
 
 The Mobile Smart plugin allows your Wordpress site to switch your theme if a user visits it using a mobile device,
@@ -216,3 +216,8 @@ Security patch to timthumb.php
 
 = 1.3 
 Improved admin, enable/disable iPad/tablet switching, updated MobileESP device detection engine
+
+= 1.3.5
+- Fix for cookie path
+- Updated Mobile ESP to latest version
+- Improved tablet tier checking for Android tablets
