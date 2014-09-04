@@ -2,7 +2,7 @@
 /*
 Plugin Name: Mobile Smart
 Plugin URI: http://www.dansmart.co.uk/downloads/
-Version: v1.3.1
+Version: v1.3.6
 Author: <a href="http://www.dansmart.co.uk/">Dan Smart</a>
 Description: Mobile Smart contains helper tools for mobile devices +  switching mobile themes. <a href="/wp-admin/options-general.php?page=mobile-smart.php">Settings</a>
              determination of mobile device type or tier in CSS and PHP code, using
@@ -130,19 +130,13 @@ if (!class_exists("MobileSmart"))
       parent::uagent_info();
       
       // translations
-      load_plugin_textdomain(MOBILESMART_DOMAIN, MOBILESMART_PLUGIN_PATH.'/language');
+      load_plugin_textdomain(MOBILESMART_DOMAIN);
 
       if (isset($_COOKIE[MOBILESMART_SWITCHER_COOKIE]))
       {
         $this->switcher_cookie = $_COOKIE[MOBILESMART_SWITCHER_COOKIE];
         //echo "Construct cookie: $this->switcher_cookie<br/><br/>";
       }
-    }
-    
-    // PHP 5 version
-    function __construct()
-    {
-      $this->MobileSmart();
     }
 
     // -------------------------------------------------------------------------
@@ -853,9 +847,9 @@ if (!class_exists("MobileSmart"))
          $options = $this->getAdminOptions();
          $is_mobile =  false;
 
-         if ($options['switch_for_tablets'])
+         if (isset($options['switch_for_tablets']) && $options['switch_for_tablets'])
          {
-           $is_mobile =  $this->DetectMobileQuick() || $this->DetectIpad();
+           $is_mobile =  $this->DetectMobileQuick() || $this->DetectIpad() || $this->DetectAndroidTablet();
          }
          else
          {
@@ -961,7 +955,7 @@ if (!class_exists("MobileSmart"))
                   $version,
                   time()+MOBILESMART_SWITCHER_COOKIE_EXPIRE,
                   COOKIEPATH,
-                  str_replace('http://www','',get_bloginfo('url')));
+                  str_replace(array('http://www','http://'),'',get_bloginfo('url')));
 
         // save version in class for viewing the page before a refresh
         $this->switcher_cookie = $version;
@@ -1156,7 +1150,7 @@ if (isset($mobile_smart))
 
   // Switcher {
     // Actions
-    add_action('admin_menu', MobileSmart_ap);
+    add_action('admin_menu', 'MobileSmart_ap');
     add_action('setup_theme', array($mobile_smart, 'action_handleSwitcherLink'));
     add_action('wp_footer', array($mobile_smart, 'action_addSwitcherLinkInFooter'));
     add_action('init', array($mobile_smart, 'action_init'));
