@@ -847,7 +847,7 @@ if (!class_exists("MobileSmart"))
          $options = $this->getAdminOptions();
          $is_mobile =  false;
 
-         if ($options['switch_for_tablets'])
+         if (isset($options['switch_for_tablets']) && $options['switch_for_tablets'])
          {
            $is_mobile =  $this->DetectMobileQuick() || $this->DetectIpad() || $this->DetectAndroidTablet();
          }
