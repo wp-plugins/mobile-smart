@@ -24,11 +24,16 @@ Check out the Mobile Smart Pro plugin http://www.mobile-smart.co.uk for support 
 * Domain switching - use a mobile theme to detect mobile devices, and redirect to appropriate theme URL (e.g. m.yoursite.com)
 * Mobile Pages - mobile versions of posts and pages with the same URL
 * Mobile Menus - mobile versions of menus for mobile-specific navigation
+* Mobile Widgets - disable selected widgets when viewing your site on your mobile device
+* Mobile Plugins - disable selected plugins when viewing your site on your mobile device
 
 See the Frequently Asked Questions for guidance on how to use the plugin.
 
 Device support includes iPhone, iPad, Android, Blackberry, Windows Phone 6 & 7, Symbian, and many more.
 
+= Contribute =
+
+Want to contribute to the project? Checkout the GitHub project at http://www.github.com/dansmart/mobile-smart
 
 = Mobile Theme =
 Mobile Smart comes with a basic barebones ('boilerplate') theme that can be used by theme developers to develop for mobile devices.
@@ -221,3 +226,6 @@ Improved admin, enable/disable iPad/tablet switching, updated MobileESP device d
 - Fix for cookie path
 - Updated Mobile ESP to latest version
 - Improved tablet tier checking for Android tablets
+
+= 1.3.6
+- Debugged tablet switching code
