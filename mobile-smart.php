@@ -1,8 +1,8 @@
 <?php
 /*
 Plugin Name: Mobile Smart
-Plugin URI: http://www.mobile-smart.co.uk/
-Version: v1.3.7
+Plugin URI: http://www.dansmart.co.uk/downloads/
+Version: v1.3.8
 Author: <a href="http://www.dansmart.co.uk/">Dan Smart</a>
 Description: Mobile Smart contains helper tools for mobile devices +  switching mobile themes. <a href="/wp-admin/options-general.php?page=mobile-smart.php">Settings</a>
              determination of mobile device type or tier in CSS and PHP code, using
@@ -560,7 +560,7 @@ if (!class_exists("MobileSmart"))
     function displayProNotice()
     {
       ?>
-      <p>Check out <a href="http://codecanyon.net/item/mobile-smart-pro/3671362?ref=dansmart" target="_blank">Mobile Smart PRO</a> - ultimate WordPress mobile toolkit, containing domain switching, domain redirects, mobile content, mobile menus, mobile widget management, shortcodes, and more.</p>
+      <p>Coming soon: Mobile Smart PRO - sign up to the newsletter to get news of when it will be released.</p>
       <?php
     }
 
@@ -1089,7 +1089,7 @@ if (!class_exists("MobileSmart"))
         }
 
         // create new rescaled image
-        $rescaled_image = '<img src="'.MOBILESMART_PLUGIN_URL.'/includes/timthumb.php?src='.$img_src.'&w='.$width.'&h='.$height.'&zc=0"'
+        $rescaled_image = '<img src="'.plugins_url('/includes/timthumb.php',dirname(__FILE__)).'?src='.$img_src.'&w='.$width.'&h='.$height.'&zc=0"'
                           .' width="'.$width.'"'.' height="'.$height.'"'.'/>';
 
         // replace the entire text of the old image with the text of the resized image
