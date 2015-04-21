@@ -2,7 +2,7 @@
 /*
 Plugin Name: Mobile Smart
 Plugin URI: http://www.dansmart.co.uk/downloads/
-Version: v1.3.6
+Version: v1.3.8
 Author: <a href="http://www.dansmart.co.uk/">Dan Smart</a>
 Description: Mobile Smart contains helper tools for mobile devices +  switching mobile themes. <a href="/wp-admin/options-general.php?page=mobile-smart.php">Settings</a>
              determination of mobile device type or tier in CSS and PHP code, using
@@ -108,7 +108,7 @@ if (!class_exists("MobileSmart"))
                                'enable_theme_switching'=>true);
 
     var $device = ''; // current device
-    var $deviceTier = ''; // current device tier
+    var $device_tier = ''; // current device tier
 
     var $switcher_cookie = null;
     
@@ -413,7 +413,7 @@ if (!class_exists("MobileSmart"))
             ?>
 
               <div class="submit">
-                <input type="submit" name="submit" value="<?php _e('Update Settings', 'MobileSmart'); ?>"/>
+                <input type="submit" name="submit" value="<?php _e('Update Settings', 'MobileSmart'); ?>" class="button button-primary" />
               </div>
             </form>
           </div>
@@ -669,7 +669,7 @@ if (!class_exists("MobileSmart"))
     // ---------------------------------------------------------------------------
     function getCurrentDeviceTier()
     {
-      if ($this->deviceTier == '')
+      if ($this->device_tier == '')
       {
         if ($this->DetectTierTablet())
         {
@@ -1064,7 +1064,7 @@ if (!class_exists("MobileSmart"))
 
         // * * * * * * *
         // to do: get max dimensions of images for each device / tier from somewhere like WURFL
-        switch ($this->deviceTier)
+        switch ($this->device_tier)
         {
           case MOBILE_DEVICE_TIER_TOUCH: $max_width = MOBILE_DEVICE_TIER_TOUCH_MAX_WIDTH; $max_height = MOBILE_DEVICE_TIER_TOUCH_MAX_HEIGHT; break;
           case MOBILE_DEVICE_TIER_TABLET: $max_width = MOBILE_DEVICE_TIER_TABLET_MAX_WIDTH; $max_height = MOBILE_DEVICE_TIER_TABLET_MAX_HEIGHT; break;
@@ -1089,7 +1089,7 @@ if (!class_exists("MobileSmart"))
         }
 
         // create new rescaled image
-        $rescaled_image = '<img src="'.MOBILESMART_PLUGIN_URL.'/includes/timthumb.php?src='.$img_src.'&w='.$width.'&h='.$height.'&zc=0"'
+        $rescaled_image = '<img src="'.plugins_url('/includes/timthumb.php',dirname(__FILE__)).'?src='.$img_src.'&w='.$width.'&h='.$height.'&zc=0"'
                           .' width="'.$width.'"'.' height="'.$height.'"'.'/>';
 
         // replace the entire text of the old image with the text of the resized image
@@ -1182,7 +1182,7 @@ if (!function_exists("MobileSmart_ap"))
     // add the options page
     if (function_exists('add_options_page'))
     {
-      add_options_page("Mobile Smart", "Mobile Smart", 9, basename(__FILE__),
+      add_options_page("Mobile Smart", "Mobile Smart", 'manage_options', basename(__FILE__),
                        array(&$mobile_smart, 'displayAdminOptions'));
     }
   }

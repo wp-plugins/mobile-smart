@@ -3,7 +3,7 @@ Contributors: dolby_uk
 Donate link: http://www.mobile-smart.co.uk/
 Tags: iphone, mobile, theme switcher, mobile theme, mobile device, series 60, ipad, blackberry, android, tablet
 Requires at least: 3.1
-Tested up to: 4.0
+Tested up to: 4.1
 Stable tag: trunk
 
 The Mobile Smart plugin allows your Wordpress site to switch your theme if a user visits it using a mobile device,
@@ -12,7 +12,7 @@ for developers to start with, based on Mobile Boilerplate and HTML 5 Reset.
 
 == Description ==
 
-Mobile Smart (http://www.mobile-smart.co.uk/), using detection from the MobileESP project (http://www.mobileesp.com) allows the following:
+Mobile Smart (http://www.mobile-smart.co.uk/), using trusty detection from the MobileESP project (http://www.mobileesp.com) allows the following:
 
 * Switch your theme to a mobile-ready theme if a mobile device is detected (you can now enable/disable iPad/tablets)
 * Manual Switcher - to allow your user to manually switch between desktop and mobile versions. Available in 3 versions: widget, option to automatically insert into footer, or template tag.
@@ -26,13 +26,14 @@ Device support includes iPhone, iPad, Android, Blackberry, Windows Phone 6 & 7, 
 
 = Mobile Smart Pro =
 
-Check out the Mobile Smart Pro plugin http://www.mobile-smart.co.uk for support for:
+Check out the Mobile Smart Pro plugin http://www.mobile-smart.co.uk/mobile-smart-pro for support for:
 
 * Domain switching - use a mobile theme to detect mobile devices, and/or redirect to appropriate theme URL (e.g. m.yoursite.com)
 * Mobile Pages - mobile versions of posts and pages with the same URL
 * Mobile Menus - mobile versions of menus for mobile-specific navigation
 * Mobile Widgets - disable selected widgets when viewing your site on your mobile device
 * Mobile Plugins - disable selected plugins when viewing your site on your mobile device
+* Mobile Home Page - select a different page to be the mobile site's home page
 
 = Contribute =
 
@@ -177,26 +178,19 @@ for a good example of a theme that is compatible with XHTML-MP.
 
 == Changelog ==
 
-= 0.1 =
-Initial release, containing mobile device detection, body classes, and mobile tier template tags.
+= 1.3.8
+- Fix for undeclared plugins_url in transcoding 
 
-= 0.2 =
-Added Manual Mobile Switcher - widget, link, and template tag.
+= 1.3.7
+- Fixed some code warnings and fixed access permissions for admin page
 
-= 1.0 =
-Based detector on Mobile ESP project, meaning device detection will stay up to date with latest mobile devices
+= 1.3.6
+- Debugged tablet switching code
 
-= 1.1 =
-Includes sample mobile theme - based on Mobile Boilerplate and HTML 5 Reset projects
-
-= 1.1.1 =
-Bug fix where plugin was calling non existent DetectTierTouch() function.
-
-= 1.2 =
-Added support for child themes
-
-= 1.2.1 =
-Vital Security patch (timthumb.php). Please upgrade immediately.
+= 1.3.5
+- Fix for cookie path
+- Updated Mobile ESP to latest version
+- Improved tablet tier checking for Android tablets
 
 = 1.3 =
 Major upgrade:
@@ -205,30 +199,68 @@ Major upgrade:
 - You can now select to switch for Ipad/tablet or not
 - Debugged image transcoding
 
-== Upgrade Notice ==
-
-= 0.1 =
-Initial release.
-
-= 0.2 =
-
-= 1.0 =
-
-= 1.1 =
+= 1.2.1 =
+Vital Security patch (timthumb.php). Please upgrade immediately.
 
 = 1.2 =
-If you're switching to a child theme, you will need to save your Mobile Smart settings before use.
+Added support for child themes
 
-= 1.2.1 =
-Security patch to timthumb.php
+= 1.1.1 =
+Bug fix where plugin was calling non existent DetectTierTouch() function.
 
-= 1.3 
-Improved admin, enable/disable iPad/tablet switching, updated MobileESP device detection engine
+= 1.1 =
+Includes sample mobile theme - based on Mobile Boilerplate and HTML 5 Reset projects
+
+= 1.0 =
+Based detector on Mobile ESP project, meaning device detection will stay up to date with latest mobile devices
+
+= 0.2 =
+Added Manual Mobile Switcher - widget, link, and template tag.
+
+= 0.1 =
+Initial release, containing mobile device detection, body classes, and mobile tier template tags.
+
+== Upgrade Notice ==
+
+= 1.3.8
+- Fix for undeclared plugins_url in transcoding 
+
+= 1.3.7
+- Fixed some code warnings and fixed access permissions for admin page
+
+= 1.3.6
+- Debugged tablet switching code
 
 = 1.3.5
 - Fix for cookie path
 - Updated Mobile ESP to latest version
 - Improved tablet tier checking for Android tablets
 
-= 1.3.6
-- Debugged tablet switching code
+= 1.3 
+Improved admin, enable/disable iPad/tablet switching, updated MobileESP device detection engine
+
+= 1.2.1 =
+Security patch to timthumb.php
+
+= 1.2 =
+If you're switching to a child theme, you will need to save your Mobile Smart settings before use.
+
+= 1.1 =
+
+= 1.0 =
+
+= 0.2 =
+
+= 0.1 =
+Initial release.
+
+
+
+
+
+
+
+
+
+
+
