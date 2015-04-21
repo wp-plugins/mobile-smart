@@ -2,7 +2,7 @@
 /*
 Plugin Name: Mobile Smart
 Plugin URI: http://www.dansmart.co.uk/downloads/
-Version: v1.3.8
+Version: v1.3.9
 Author: <a href="http://www.dansmart.co.uk/">Dan Smart</a>
 Description: Mobile Smart contains helper tools for mobile devices +  switching mobile themes. <a href="/wp-admin/options-general.php?page=mobile-smart.php">Settings</a>
              determination of mobile device type or tier in CSS and PHP code, using
@@ -393,11 +393,11 @@ if (!class_exists("MobileSmart"))
               }
             ?>
             <h3 class="nav-tab-wrapper">
-              <a href="<?php echo add_query_arg('tab', 1); ?>" class="nav-tab <?php display_active_tab(1, $current_tab); ?>">Mobile Theme</a>
-              <a href="<?php echo add_query_arg('tab', 2); ?>" class="nav-tab <?php display_active_tab(2, $current_tab); ?>">Domain Switching (PRO)</a>
-              <a href="<?php echo add_query_arg('tab', 3); ?>" class="nav-tab <?php display_active_tab(3, $current_tab); ?>">Manual Switching</a>
-              <a href="<?php echo add_query_arg('tab', 4); ?>" class="nav-tab <?php display_active_tab(4, $current_tab); ?>">Transcoding</a>
-              <a href="<?php echo add_query_arg('tab', 5); ?>" class="nav-tab <?php display_active_tab(5, $current_tab); ?>">Mobile Pages (PRO)</a>
+              <a href="<?php echo esc_url(add_query_arg('tab', 1)); ?>" class="nav-tab <?php display_active_tab(1, $current_tab); ?>">Mobile Theme</a>
+              <a href="<?php echo esc_url(add_query_arg('tab', 2)); ?>" class="nav-tab <?php display_active_tab(2, $current_tab); ?>">Domain Switching (PRO)</a>
+              <a href="<?php echo esc_url(add_query_arg('tab', 3)); ?>" class="nav-tab <?php display_active_tab(3, $current_tab); ?>">Manual Switching</a>
+              <a href="<?php echo esc_url(add_query_arg('tab', 4)); ?>" class="nav-tab <?php display_active_tab(4, $current_tab); ?>">Transcoding</a>
+              <a href="<?php echo esc_url(add_query_arg('tab', 5)); ?>" class="nav-tab <?php display_active_tab(5, $current_tab); ?>">Mobile Pages (PRO)</a>
             </h3>
             <form method="post" action="<?php echo $_SERVER["REQUEST_URI"]; ?>">
             <?php
@@ -882,9 +882,9 @@ if (!class_exists("MobileSmart"))
       <!-- START MobileSmart - Switcher - http://www.dansmart.co.uk/ -->
       <div id="mobilesmart_switcher">
         <?php if ($is_mobile) : ?>
-          <a href="<?php echo $this->get_switcherLink(MOBILESMART_SWITCHER_DESKTOP_STR); ?>"><?php _e('Switch to desktop version', MOBILESMART_DOMAIN); ?></a>
+          <a href="<?php echo esc_url($this->get_switcherLink(MOBILESMART_SWITCHER_DESKTOP_STR)); ?>"><?php _e('Switch to desktop version', MOBILESMART_DOMAIN); ?></a>
         <?php else : ?>
-          <a href="<?php echo $this->get_switcherLink(MOBILESMART_SWITCHER_MOBILE_STR); ?>"><?php _e('Switch to mobile version', MOBILESMART_DOMAIN); ?></a>
+          <a href="<?php echo esc_url($this->get_switcherLink(MOBILESMART_SWITCHER_MOBILE_STR)); ?>"><?php _e('Switch to mobile version', MOBILESMART_DOMAIN); ?></a>
         <?php endif; ?>
       </div>
       <!-- END MobileSmart - Switcher - http://www.dansmart.co.uk/ -->
