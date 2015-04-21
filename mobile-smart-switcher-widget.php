@@ -30,6 +30,8 @@ function MobileSmartSwitcherWidget() {
  */
 function widget($args, $instance) {
 	global $mobile_smart;
+	
+	extract($args);
 
   // Before widget
 	echo $before_widget;
